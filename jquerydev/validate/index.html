@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Form-Validate</title>
+		<meta charset="utf-8" />
+    <link rel="stylesheet" href="../../lib/default.css" type="text/css" />
+		<link rel="stylesheet" href="jquery.validate.css" type="text/css" />
+		<script type="text/javascript" src="../../lib/jquery-1.8.3.js"></script>
+		<script type="text/javascript" src="jquery.validate.js"></script>
+	</head>
+	<body>
+			<form action="#" data-validate="{debug:true,before:'submit'}">
+				<dl>
+					<dt><label for="name1">验证必填：</label></dt>
+					<dd><input type="text" name="name1" data-ruler="{must:1}"/></dd>
+				</dl>
+				<dl>
+					<dt><label for="name2">区间个数：</label></dt>
+					<dd>
+						<label class="checkbox"><input type="checkbox" value="cb1" name="name2" data-ruler="{multiple:[3,4]}"/>复选框1</label>
+						<label class="checkbox"><input type="checkbox" value="cb2" name="name2" />复选框2</label>
+						<label class="checkbox"><input type="checkbox" value="cb3" name="name2" />复选框3</label><br/>
+						<label class="checkbox"><input type="checkbox" value="cb4" name="name2" />复选框4</label>
+						<label class="checkbox"><input type="checkbox" value="cb5" name="name2" />复选框5</label>
+					</dd>
+				</dl>
+				<dl>
+					<dt><label for="name3">必选：</label></dt>
+					<dd>
+						<label class="radio"><input type="radio" value="r1" name="name3" data-ruler="{require:1}"/>单框1</label>
+						<label class="radio"><input type="radio" value="r2" name="name3" />单选框2</label>
+						<label class="radio"><input type="radio" value="r3" name="name3" />单选框3</label>
+					</dd>
+				</dl>
+				<dl>
+					<dt><label for="name4">大于0的整数：</label></dt>
+					<dd><input type="text" name="name4" data-ruler="{intgt0:1}"/></dd>
+				</dl>
+				<dl>
+					<dt><label for="name5">字数个数：</label></dt>
+					<dd><input type="text" name="name5" data-ruler="{count:[3,10]}"/></dd>
+				</dl>
+				<dl>
+					<dt><label for="name6">IP地址：</label></dt>
+					<dd><input type="text" name="name6" id="test" data-ruler="{ip:1}"/></dd>
+				</dl>
+				<dl>
+					<dt><label for="name7">身份证：</label></dt>
+					<dd><input type="text" name="name7" data-ruler="{must:1,id:1}"/></dd>
+				</dl>
+				<dl>
+					<dt><label for="name8">座机：</label></dt>
+					<dd><input type="text" name="name8" data-ruler="{tel:1}"/></dd>
+				</dl>
+				<dl>
+					<dt><label for="name9">区间：</label></dt>
+					<dd><input type="text" name="name9" data-ruler="{section:[3,5]}"/></dd>
+				</dl>
+				<dl>
+					<dt><label for="name10">整数倍：</label></dt>
+					<dd><input type="text" name="name10" data-ruler="{numtimes:[4,7]}"/></dd>
+				</dl>
+				<dl>
+					<dt><label for="name11">小数点后数字：</label></dt>
+					<dd><input type="text" name="name11" data-ruler="{number:1,dotnum:4}"/></dd>
+				</dl>
+				<dl>
+					<dt></dt>
+					<dd>
+						<input type="submit" class="btn" value="提交">
+						<input type="button" value="清除验证" onclick="clearValid()"/>
+					</dd>
+				</dl>
+			</form>
+
+			<script type="text/javascript">
+			function clearValid() {
+				$('[data-validate]').validate('clear');
+			}
+
+			$(function () {
+				$('[data-validate]').each(function () {
+					var $this = $(this),
+						options = $this.data('validate');
+
+					options = (new Function('return ' + options))() || {};
+
+					if (options.debug) {
+						$this.validate(options);
+					}
+					if (options.before) {
+						$this.on(options.before, function () {
+							var valid = false;
+							$this.validate('run')
+								.done(function (c) {
+									valid = true;
+								})
+								.fail(function (d) {
+									valid = false;
+								});
+								return valid;
+						});
+					}
+				});
+
+				// $('[data-validate]').validate('ruler', $('#test'), {must: 1});
+
+			});
+			</script>
+	</body>
+</html>

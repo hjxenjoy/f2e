@@ -1,0 +1,59 @@
+@charset "UTF-8";
+/**
+ * @authors hujx
+ * @date    2014-06-09 14:13:48
+ */
+label > .validate-mark {
+	color: #f03;
+	font-style: normal;
+}
+.validate-box {
+	position: absolute;
+	z-index: 700;
+	margin-top: 3px;
+	width: 0;
+	height: 0;
+	border-width: 7px;
+	border-style: solid;
+	border-color: transparent transparent transparent #f03;
+}
+.validate-error {
+	position: absolute;
+	z-index: 701;
+	padding: 5px;
+	min-width: 60px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	background: #fff;
+}
+.validate-error > h4 {
+  margin: 0;
+	color: #f03;
+	text-align: center;
+  font-size: 14px;
+	font-weight: 400;
+}
+.validate-error .validate-caret {
+	position: absolute;
+  bottom: -10px;
+  left: 10px;
+  width: 20px;
+  height: 10px;
+}
+.validate-error .validate-caret > .validate-caret-top,
+.validate-error .validate-caret > .validate-caret-bottom {
+	position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: block;
+  border-width: 10px 10px 0 10px;
+  border-style: solid;
+  border-color: transparent;
+  border-top-color: #ccc;
+}
+.validate-error .validate-caret > .validate-caret-top {
+	top: -1px;
+  z-index: 3;
+  border-top-color: #fff;
+}

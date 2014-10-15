@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Calendar</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../lib/default.css" type="text/css" />
+    <link rel="stylesheet" href="jquery.calendar.css" type="text/css" />
+    <script type="text/javascript" src="../../lib/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="jquery.calendar.js"></script>
+    <script type="text/javascript">
+      $(function () {
+        var d = new Date(2014, 9, 12);
+        $('#t1').calendar({
+          active: true,
+          closable: false,
+          storage: false,
+          enable: [d, new Date(2014, 10, 22)],
+          // after: function (everyday, element) {
+          //   if (everyday.getDate()%4==0) {
+          //     $(element).addClass('my-class');
+          //   }
+          // }
+          after: null
+        });
+        // //
+        $('#t2').calendar({
+          size: 6,
+          time: true,
+          todayBtn: true,
+          clearBtn: true
+        });
+        $('#t3').calendar();
+
+        $.calendarPair({
+          start: $('.start-date'),
+          end: $('.end-date'),
+          enable: [],
+          scope: function (date) {
+            var year = date.getFullYear();
+            return [new Date(year, 0, 1), new Date(year, 11, 31)];
+          }
+          // enable: [new Date(2014, 9, 4), new Date(2014, 9, 29)]
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div class="s1" id="t1"></div>
+
+    <div class="s1" id="s1">
+      <input class="date-mini start-date" type="text" readonly="readonly"/>
+      <input class="date-mini end-date" type="text" readonly="readonly" />
+    </div>
+
+    <div class="s1">
+      <input class="date" type="text" id="t2" value="2014-09-09" readonly="readonly"/>
+    </div>
+    <div class="s1">
+      <input class="date" type="text" id="t3" value="2014-10-11" readonly="readonly"/>
+    </div>
+
+  </body>
+</html>

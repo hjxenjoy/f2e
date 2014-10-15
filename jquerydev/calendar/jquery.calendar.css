@@ -1,0 +1,235 @@
+@charset "utf-8";
+
+.calendar-pair {
+  display: none;
+  position: absolute;
+  top: 100px;
+  left: 400px;
+  z-index: 1000;
+  padding: 5px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.calendar-pair.open {
+  display: inline-block;
+}
+.calendar-pair .calendar-start,
+.calendar-pair .calendar-end {
+  float: left;
+  margin-bottom: 5px;
+}
+.calendar-pair .calendar-start {
+  margin-right: 2px;
+}
+.calendar-pair .calendar-start > .calendar-btn,
+.calendar-pair .calendar-end > .calendar-btn {
+  *width: 242px;
+  padding: 4px 0;
+}
+.calendar-pair > .calendar-btn {
+  clear: both;
+  *width: 498px;
+  padding: 4px 0;
+}
+.calendar-btn {
+  height: 20px;
+  line-height: 20px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  text-align: center;
+  color: #454545;
+  cursor: pointer;
+}
+.calendar-btn:hover {
+  background: #ddd;
+}
+.calendar {
+  display: none;
+  width: 240px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #454545;
+  -webkit-font-smoothing: antialiased;
+}
+.calendar.open {
+  display: inline-block;
+}
+.calendar-top {
+  position: relative;
+  height: 30px;
+  padding: 0 30px;
+  border-bottom: 1px solid #ccc;
+}
+.calendar-top .calendar-left,
+.calendar-top .calendar-right {
+  position: absolute;
+  top: 0;
+  display: block;
+  width: 20px;
+  height: 30px;
+  cursor: pointer;
+}
+.calendar-top .calendar-left {
+  left: 5px;
+}
+.calendar-top .calendar-right {
+  right: 5px;
+}
+.calendar-top .calendar-left span,
+.calendar-top .calendar-left em {
+  position: absolute;
+  display: block;
+  left: 0;
+  top: 5px;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  line-height: 0;
+  border-width: 10px 10px 10px 0;
+  border-style: solid;
+  border-color: transparent #ccc transparent transparent;
+}
+.calendar-top .calendar-left em {
+  z-index: 2;
+  left: 2px;
+  border-right-color: #fff;
+}
+.calendar-top .calendar-left:hover span {
+  border-right-color: #666;
+}
+.calendar-top .calendar-right span,
+.calendar-top .calendar-right em {
+  position: absolute;
+  display: block;
+  right: 0;
+  top: 5px;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  line-height: 0;
+  border-width: 10px 0 10px 10px;
+  border-style: solid;
+  border-color: transparent transparent transparent #ccc;
+}
+.calendar-top .calendar-right em {
+  z-index: 2;
+  right: 2px;
+  border-left-color: #fff;
+}
+.calendar-top .calendar-right:hover span {
+  border-left-color: #666;
+}
+.calendar-top .calendar-text {
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  color: #454545;
+  cursor: pointer;
+}
+.calendar-top .calendar-text:hover {
+  color: #77A37D;
+}
+.calendar-body {
+  height: 168px;
+}
+.calendar-body .calendar-cell-month,
+.calendar-body .calendar-cell-ten,
+.calendar-body .calendar-cell-year {
+  float: left;
+  width: 25%;
+  height: 56px;
+  border-radius: 4px;
+  line-height: 56px;
+  text-align: center;
+}
+.calendar-body .calendar-cell-ten p {
+  margin: 0;
+  padding: 6px 0 0 8px;
+  text-align: left;
+  line-height: 16px;
+}
+.calendar-body .calendar-cell-ignore {
+  color: #aaa;
+}
+.calendar-body .calendar-cell-month:hover,
+.calendar-body .calendar-cell-ten:hover,
+.calendar-body .calendar-cell-year:hover,
+.calendar-body .calendar-month li:hover {
+  background-color: #f0f0f0;
+  color: #77A37D;
+  cursor: default;
+}
+.calendar-body .calendar-month li.calendar-cell-today {
+  text-decoration: underline;
+  font-size: 14px;
+  font-weight: bold;
+}
+.calendar-body .calendar-month li.calendar-cell-selected {
+  font-size: 14px;
+  color: #f00;
+}
+.calendar-body .calendar-week,
+.calendar-body .calendar-month {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.calendar-body .calendar-week li,
+.calendar-body .calendar-month li {
+  float: left;
+  width: 14.285714286%;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  border-radius: 3px;
+}
+.calendar-foot {
+  padding: 0 10px;
+  line-height: 0;
+  overflow: hidden;
+  *zoom: 1;
+}
+.calendar-foot .calendar-time {
+  float: left;
+  margin: 3px 0;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+.calendar-foot .calendar-time input[type="text"] {
+  float: left;
+  margin: 0;
+  width: 20px;
+  height: 14px;
+  padding: 3px;
+  font-size: 12px;
+  border: 0 none;
+  line-height: 14px;
+  border-radius: 3px;
+}
+.calendar-foot .calendar-time input[type="text"]:focus {
+  outline: 0 none;
+}
+.calendar-foot .calendar-time span {
+  float: left;
+  line-height: 20px;
+}
+.calendar-foot .calendar-btn {
+  float: left;
+  display: block;
+  margin: 3px 3px 3px 0;
+  height: 14px;
+  line-height: 14px;
+  font-size: 12px;
+  padding: 3px;
+  background: #F0F0F0;
+  border: 1px solid #CCC;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.calendar-foot .calendar-btn:hover {
+  background: #ddd;
+}
