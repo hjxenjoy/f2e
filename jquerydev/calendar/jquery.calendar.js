@@ -39,7 +39,7 @@
       // 清除按钮方法
       clear: null,  // function () {}
       // 生成月视图之后，对每日做特殊处理
-      after: null,  // function (everyday, element) {}
+      after: null,  // function (year, month, dateList) {}
       // 日期点击
       dateClick: null, // function (date, $date) {},
       // 日期鼠标悬停
@@ -607,10 +607,24 @@
     after: function () {
       var _after = this.options.after || function() {},
         date = this.viewCalendar.d,
+        dateList = null,
+        year = this.viewCalendar.year,
+        month = this.viewCalendar.month,
         that = this;
+
+      if ($.isFunction(this.options.after)) {
+        dateList = [];
+      }
       this.$body.find('[data-date]').each(function (i) {
         var $this = $(this);
         date.setDate(i + 1);
+        if (dateList) {
+          dateList.push({
+            date: new Date(date),
+            target: $this
+          });
+        }
+
         if (isToday(date)) {
           $this.addClass('calendar-cell-today');
         }
@@ -620,8 +634,8 @@
           $this.addClass('calendar-cell-selected');
         }
 
-        _after(date, this);
       });
+      _after(year, month, dateList);
     },
 
     /**

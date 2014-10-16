@@ -15,13 +15,16 @@
           closable: false,
           storage: false,
           enable: [d, new Date(2014, 10, 22)],
-          // after: function (everyday, element) {
-          //   if (everyday.getDate()%4==0) {
-          //     $(element).addClass('my-class');
-          //   }
-          // }
-          after: null
+          after: function (year, month, list) {
+            // console.log(year, month);
+            $.each(list, function (i, item) {
+              if (item.date.getDate() % 6 === 1) {
+                item.target.addClass('my-class');
+              }
+            });
+          }
         });
+        
         // //
         $('#t2').calendar({
           size: 6,
