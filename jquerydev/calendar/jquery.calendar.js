@@ -286,9 +286,11 @@
       // 否：日历插入触发元素内
 
       this.isText = isText(this.element);
+
       // 初始化视图月份
-      if (this.isText && this.element.value) {
-        this.calendar = new Calendar(this.element.value);
+      // 2014-10-21修改逻辑，此处之前一直会给isText初始化calendar属性
+      if (this.isText) {
+        this.calendar =  this.element.value ? new Calendar(this.element.value) : null;
       } else {
         this.calendar = new Calendar(this.options.date || new Date());
       }
@@ -628,7 +630,6 @@
         if (isToday(date)) {
           $this.addClass('calendar-cell-today');
         }
-
         if (that.calendar && that.isText &&
            compareDate(date, that.calendar.d) === 0) {
           $this.addClass('calendar-cell-selected');
@@ -948,10 +949,23 @@
         endDate = ed ? str2Date(ed) : undefined,
 
         // 起始日期插件参数
-        startOption = $.extend({}, this.options, {
+        // 2014-10-21修改，增加深拷贝，否则enable属性会被共享
+        startOption = $.extend(true, {}, this.options, {
           date: startDate,
           active: true,
           closable: false,
+          // 2014-10-21修改，区间日期没有自动添加选中样式
+          after: function (year, month, dateList) {
+            var selDate = that.element.start.val();
+            if (selDate) {
+              selDate = str2Date(selDate);
+              $.each(dateList, function (i, item) {
+                if (compareDate(item.date, selDate) === 0) {
+                  item.target.addClass('calendar-cell-selected');
+                }
+              });
+            }
+          },
           clear: function () {
             that.element.start.val('');
             // 重置结束日期的最小值
@@ -972,10 +986,21 @@
           }
         }),
         // 结束日期插件参数
-        endOption = $.extend({}, this.options, {
+        endOption = $.extend(true, {}, this.options, {
           date: endDate,
           active: true,
           closable: false,
+          after: function (year, month, dateList) {
+            var selDate = that.element.end.val();
+            if (selDate) {
+              selDate = str2Date(selDate);
+              $.each(dateList, function (i, item) {
+                if (compareDate(item.date, selDate) === 0) {
+                  item.target.addClass('calendar-cell-selected');
+                }
+              });
+            }
+          },
           clear: function () {
             that.element.end.val('');
             // 重置开始日期的最大值
@@ -1002,7 +1027,6 @@
       if (ed) {
         startOption.enable[1] = str2Date(ed);
       }
-
       // 插件调用
       start.calendar(startOption);
       end.calendar(endOption);
