@@ -66,13 +66,12 @@
   Autocomplete.prototype = {
     constructor: Autocomplete,
 
-    // change之前的值
-    ex: [],
-
     init: function () {
       var source = this.options.source,
           dropdown = this.options.dropdown,
           that = this;
+      // change之前的值
+      this.ex = [];
 
       // 静态数据源，初始化时直接格式化缓存
       this.isStatic = (typeof source !== 'function');

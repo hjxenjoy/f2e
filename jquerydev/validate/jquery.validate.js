@@ -590,6 +590,7 @@
     // 添加一条外部业务逻辑验证方法
     out: function (check) {
       this.outer.push(check);
+      return this;
     },
 
     noop: function () {}
