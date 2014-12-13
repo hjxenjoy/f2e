@@ -5,7 +5,17 @@
  * @author hjxenjoy@foxmail.com
  * @date 2014-09-09
  */
-;(function (global, undefined) {
+;(function(root, factory) {
+
+  if (typeof define === 'function' && define.amd) {
+    define(factory);
+  } else if (typeof exports === 'object') {
+    module.exports = factory();
+  } else {
+    factory(root);
+  }
+
+})(this, function(global, undefined) {
   'use strict';
 
   var $ = global.jQuery,
@@ -17,22 +27,22 @@
     _setHours = Date.prototype.setHours;
 
   var config = {
-      style: '',          // 主题类型
-      separator: '-',     // 分隔符
-      size: 3,            // 赋值格式(年，月，日，时，分，秒，毫秒)的前几位
-      active: false,      // 是否自动打开
-      closable: true,     // 是否能关闭日期视窗
-      // 可触发事件日期，可设置为区间，闭合区间 [undefined, new Date]
-      enable: [undefined, undefined],
+      style: '',                        // 主题类型
+      separator: '-',                   // 分隔符
+      size: 3,                          // 赋值格式(年，月，日，时，分，秒，毫秒)的前几位
+      active: false,                    // 是否自动打开
+      closable: true,                   // 是否能关闭日期视窗
+      enable: [undefined, undefined],   // 可触发事件日期，可设置为区间，闭合区间 [undefined, new Date]
       zIndex: 798,
-      date: null,         // 默认初始化视窗日期，文本框调用时无效
-      weekStart: 0,       // 星期起始
+      date: null,                       // 默认初始化视窗日期，文本框调用时无效
+      weekStart: 0,                     // 星期起始
       weekText: '日 一 二 三 四 五 六',
       monthText: '一月 二月 三月 四月 五月 六月 七月 八月 九月 十月 十一月 十二月',
-      time: false,        // 时间编辑视窗
-      todayBtn: false,        // 今天按钮
+      timeText: '时分秒',
+      time: false,                      // 时间编辑视窗
+      todayBtn: false,                  // 今天按钮
       todayText: '今天',
-      clearBtn: false,        // 清除按钮,
+      clearBtn: false,                  // 清除按钮,
       clearText: '清除',
       sureText: '确定',
 
@@ -269,6 +279,49 @@
   };
 
   /**
+   * #8 设置弹出框位置
+   */
+  function setPosition (target, modal, zIndex) {
+    var pos = target.offset();
+    var height = target.outerHeight();
+    var width = target.outerWidth();
+    var $w = $(window);
+    var wh = $w.outerHeight();
+    var ww = $w.outerWidth();
+
+    var csser = {
+      'position': 'absolute',
+      'zIndex': zIndex
+    };
+    // target higher than half page
+    if ( pos.top < wh / 2) {
+      csser.top = (pos.top + height + 1) + 'px';
+      csser.bottom = 'auto';
+      // target on right side
+      if (pos.left > ww /2) {
+        csser.right = (ww - width - pos.left) + 'px';
+        csser.left = 'auto';
+      } else {
+        csser.right = 'auto';
+        csser.left = pos.left + 'px';
+      }
+    } else { // target lower than half page
+      csser.top = 'auto';
+      csser.bottom = (wh - pos.top + 1) + 'px';
+      // target on right side
+      if (pos.left > ww /2) {
+        csser.right = (ww - width - pos.left) + 'px';
+        csser.left = 'auto';
+      } else {
+        csser.right = 'auto';
+        csser.left = pos.left + 'px';
+      }
+    }
+
+    modal.css(csser);
+  }
+
+  /**
    * 日期视图
    */
   function CalendarView(element, options) {
@@ -290,7 +343,15 @@
       // 初始化视图月份
       // 2014-10-21修改逻辑，此处之前一直会给isText初始化calendar属性
       if (this.isText) {
-        this.calendar =  this.element.value ? new Calendar(this.element.value) : null;
+        if (this.element.value) {
+          this.calendar = new Calendar(this.element.value);
+          var datestr = date2Str(this.calendar.date, '', 6).match(/\d/g).join('');
+          // 已经设定的时分秒
+          this.hms = datestr.substring(8);
+          // 已经设定的年月日
+          this.ymd = datestr.substr(0, 8);
+        }
+
       } else {
         this.calendar = new Calendar(this.options.date || new Date());
       }
@@ -298,7 +359,6 @@
       // 最小,最大日期
       this.minDate = this.options.enable[0];
       this.maxDate = this.options.enable[1];
-
       this.wrap();
     },
 
@@ -354,41 +414,127 @@
     addTime: function () {
       var html = [
         '<div class="calendar-time">',
-        ' <input type="text" class="calendar-hour" maxlength="2" value="00"/>',
-        ' <span>:</span>',
-        ' <input type="text" class="calendar-minute" maxlength="2" value="00" />',
-        ' <span>:</span>',
-        ' <input type="text" class="calendar-second" maxlength="2" value="00" />',
+        ' <div class="calendar-time-box calendar-hour">',
+        '  <div class="calendar-time-minus">-</div>',
+        '  <input type="text" maxlength="2" value="' + (this.hms ? this.hms.substr(0, 2) : '00') + '" readonly="readonly"/>',
+        '  <div class="calendar-time-plus">+</div>',
+        '  <span>' + this.options.timeText.charAt(0) + '</span>',
+        ' </div>',
+        ' <div class="calendar-time-box calendar-minute">',
+        '  <div class="calendar-time-minus">-</div>',
+        '  <input type="text" maxlength="2" value="' + (this.hms ? this.hms.substr(2, 2) : '00') + '" readonly="readonly"/>',
+        '  <div class="calendar-time-plus">+</div>',
+        '  <span>' + this.options.timeText.charAt(1) + '</span>',
+        ' </div>',
+        ' <div class="calendar-time-box calendar-second">',
+        '  <div class="calendar-time-minus">-</div>',
+        '  <input type="text" maxlength="2" value="' + (this.hms ? this.hms.substr(4, 2) : '00') + '" readonly="readonly"/>',
+        '  <div class="calendar-time-plus">+</div>',
+        '  <span>' + this.options.timeText.charAt(2) + '</span>',
+        ' </div>',
         '</div>'
       ];
       this.$foot.append(html.join(''));
 
-      var code = {'8': true, '37': true, '39': true};
-      for (var i = 38; i < 58; i++) {
-        code[i] = true;
+      var that = this;
+      var min, max;
+      var minTime = '000000', minDate = 0, maxDate = 0, maxTime = '000000';
+
+      if (this.minDate) {
+        min = date2Str(min, '', 6).match(/\d/g).join('');
+        minDate = min.substr(0, 8);
+        minTime = min.substring(8);
       }
-      this.$foot.find('input:text')
-        .on('keydown.h', function (e) {
-          if (!code[e.keyCode]) {
-            e.preventDefault();
-          }
-        })
-        .on('input.h propertychange.h', function () {
-          if (this.value && (!/^\d+$/.test(this.value) || this.value > 59)) {
-            this.value = '';
-          }
-        })
-        .on('blur.h', function () {
-          this.value = lenNum(this.value || '0');
-        });
+      if (this.maxDate) {
+        max = date2Str(max, '', 6).match(/\d/g).join('');
+        maxDate = max.substr(0, 8);
+        maxTime = max.substring(8);
+      }
 
-      this.$foot.find('.calendar-hour')
-        .on('input.hj propertychange.hj', function () {
-          if (this.value > 23) {
-            this.value = '';
-          }
-        });
+      this.$foot.find('.calendar-time-plus').on('click.control-time', function () {
+        var $this = $(this);
+        var $parent = $this.parent('.calendar-time-box');
+        var input = $parent.find('input')[0];
+        var isToday = that.ymd - maxDate === 0;
+        // 今天的时分秒小于最晚时分秒要求
+        if (isToday && that.hms - maxTime > 0) {
+          return false;
+        }
 
+        var hour, minute, second;
+        // control hour
+        if ($parent.hasClass('calendar-hour')) {
+          var v = input.value * 1;
+          if (v < 23) {
+            if (isToday && maxTime.substr(0, 2) - v <= 0) {
+              return false;
+            }
+            input.value = lenNum(v + 1);
+          }
+        } else if ($parent.hasClass('calendar-minute'))  {
+          var v = input.value * 1;
+          if (isToday && maxTime.substr(2, 2) - v <= 0) {
+            return false;
+          }
+          if (v < 59) {
+            input.value = lenNum(v + 1);
+          }
+        } else if ($parent.hasClass('calendar-second'))  {
+          var v = input.value * 1;
+          if (isToday && maxTime.substr(4, 2) - v <= 0) {
+            return false;
+          }
+          if (v < 59) {
+            input.value = lenNum(v + 1);
+          }
+        }
+
+        if (that.ymd) {
+          that.set(that.ymd);
+        }
+      });
+
+      this.$foot.find('.calendar-time-minus').on('click.control-time', function () {
+        var $this = $(this);
+        var $parent = $this.parent('.calendar-time-box');
+        var input = $parent.find('input')[0];
+
+        var isToday = that.ymd - minDate === 0;
+        // 今天的时分秒大于最早时分秒要求
+        if (isToday && that.hms - minTime < 0) {
+          return false;
+        }
+        // control hour
+        if ($parent.hasClass('calendar-hour')) {
+          var v = input.value * 1;
+          if (v > 0) {
+            if (isToday && minTime.substr(0, 2) - v >= 0) {
+              return false;
+            }
+            input.value = lenNum(v - 1);
+          }
+        } else if ($parent.hasClass('calendar-minute'))  {
+          var v = input.value * 1;
+          if (isToday && minTime.substr(2, 2) - v >= 0) {
+            return false;
+          }
+          if (v > 0) {
+            input.value = lenNum(v - 1);
+          }
+        } else if ($parent.hasClass('calendar-second'))  {
+          var v = input.value * 1;
+          if (isToday && minTime.substr(4, 2) - v >= 0) {
+            return false;
+          }
+          if (v > 0) {
+            input.value = lenNum(v - 1);
+          }
+        }
+
+        if (that.ymd) {
+          that.set(that.ymd);
+        }
+      });
     },
 
     addToday: function () {
@@ -406,8 +552,13 @@
 
       if (this.isText) {
         this.$element.on('click.toggle-calendar', function (e) {
-          closeCalendar();
-          that.$wrap.hasClass('open') ? that.close() : that.open();
+          // fixed bug #6
+          if (that.$wrap.hasClass('open')) {
+            closeCalendar();
+          } else {
+            closeCalendar();
+            that.open();
+          }
           e.stopPropagation();
         });
       }
@@ -796,11 +947,15 @@
         date = str2Date(date);
       }
       if (this.options.time) {
-        date.setHours(this.$foot.find('.calendar-hour').val());
-        date.setMinutes(this.$foot.find('.calendar-minute').val());
-        date.setSeconds(this.$foot.find('.calendar-second').val());
+        var times = this.$foot.find('.calendar-time').find('input');
+        date.setHours(times[0].value);
+        date.setMinutes(times[1].value);
+        date.setSeconds(times[2].value);
       }
 
+      var datestr = date2Str(date, '', 6).match(/\d/g).join('');
+      this.hms = datestr.substring(8);
+      this.ymd = datestr.substr(0, 8);
       this.calendar = new Calendar(date);
       var scls = 'calendar-cell-selected';
       // 文本框触发
@@ -840,7 +995,7 @@
 
       this.$wrap.addClass('open');
       if (this.isText) {
-        this.setPosition();
+        setPosition(this.$element, this.$wrap, this.options.zIndex);
       }
       if (this.options.time) {
         this.$foot.find('.calendar-hour').val(lenNum(currentDate.getHours()));
@@ -858,17 +1013,6 @@
       }
       this.month();
       return this;
-    },
-
-    setPosition: function () {
-      var pos = this.$element.offset(),
-        height = this.$element.outerHeight();
-      this.$wrap.css({
-        'position': 'absolute',
-        'top': (pos.top + height + 1) + 'px',
-        'left': pos.left + 'px',
-        'zIndex': this.options.zIndex
-      });
     },
 
     close: function () {
@@ -1048,23 +1192,23 @@
         });
 
       this.element.start.on('click.toggle-calendar-pair', function (e) {
-        closeCalendar();
         if (parent.hasClass('open')) {
-          parent.removeClass('open');
+          closeCalendar();
         } else {
+          closeCalendar();
           parent.addClass('open');
-          that.setPosition(parent, $(this));
+          setPosition($(this), parent, that.options.zIndex);
         }
         e.stopPropagation();
       });
 
       this.element.end.on('click.toggle-calendar-pair', function (e) {
-        closeCalendar();
         if (parent.hasClass('open')) {
-          parent.removeClass('open');
+          closeCalendar();
         } else {
+          closeCalendar();
           parent.addClass('open');
-          that.setPosition(parent, $(this));
+          setPosition($(this), parent, that.options.zIndex);
         }
         e.stopPropagation();
       });
@@ -1077,15 +1221,6 @@
         .on('click.calendar-clear', function () {
           end.calendar('clear');
         });
-    },
-    setPosition: function ($obj, $element) {
-      var pos = $element.offset(),
-        height = $element.outerHeight();
-      $obj.css({
-        'top': (pos.top + height + 1) + 'px',
-        'left': pos.left + 'px',
-        'zIndex': this.options.zIndex
-      });
     }
   };
 
@@ -1104,4 +1239,4 @@
     .on('click.calendar-api', function () {
       closeCalendar();
     });
-})(this);
+});

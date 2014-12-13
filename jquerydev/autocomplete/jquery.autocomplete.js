@@ -4,6 +4,8 @@
  * @base jquery-1.8.3
  * @author hjxenjoy@foxmail.com
  * @date 2014-08-22
+ *
+ * @2014-11-07 修改select实现，参数配置中的select用来让用户进行提前判断，返回boolean，判断是否进行赋值
  */
 ;(function(global){
   'use strict';
@@ -472,6 +474,10 @@
 
     // 选择一条
     select: function (index) {
+      var item = this.cache[index];
+      if ($.isFunction(this.options.select) && !this.options.select(item)) {
+        return this;
+      }
       if (this.options.multiple) {
         this.add(index);
       } else {
@@ -482,14 +488,14 @@
     // 覆盖，for单选
     replace: function (index) {
       var item = this.cache[index],
-        before = this.ex[0] || {},
-        _select = this.options.select || function () {};
+//        _select = this.options.select || function () {};
+        before = this.ex[0] || {};
 
       if (before.value !== item.value) {
         this.element.val(item.value);
         this.label.text(item.label).removeClass('ac-place');
         this.ex = [item];
-        _select(item);
+//        _select(item);
 
         this.change(item);
       }
@@ -499,7 +505,7 @@
     // 添加一条进入已选cu，for多选
     add: function (index) {
       var item = this.cache[index],
-        _select = this.options.select || function () {},
+//        _select = this.options.select || function () {},
         exist = false;
 
       // 重复性查找
@@ -515,7 +521,7 @@
         this.searcher.before(this.tagHtml(item));
 
         // 多选不会给表单赋值，需要手动添加所需格式值
-        _select(this.ex);
+//        _select(this.ex);
 
         this.change(this.ex);
       }

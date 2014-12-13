@@ -53,6 +53,12 @@
   font-size: 12px;
   color: #454545;
   -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
 }
 .calendar.open {
   display: inline-block;
@@ -188,7 +194,9 @@
   border-radius: 3px;
 }
 .calendar-foot {
+  margin: 1px 0 -1px;
   padding: 0 10px;
+  border-top: 1px solid #ccc;
   line-height: 0;
   overflow: hidden;
   *zoom: 1;
@@ -196,25 +204,71 @@
 .calendar-foot .calendar-time {
   float: left;
   margin: 3px 0;
-  border: 1px solid #ccc;
+  width: 120px;
+  padding-left: 15px;
+}
+.calendar-foot .calendar-time .calendar-time-box {
+  position: relative;
+  float: left;
+  width: 40px;
+}
+.calendar-foot .calendar-time .calendar-time-box .calendar-time-minus,
+.calendar-foot .calendar-time .calendar-time-box .calendar-time-plus {
+  display: none;
+  position: absolute;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  line-height: 10px;
+  font-size: 20px;
+  text-align: center;
+  border: 1px solid #ddd;
   border-radius: 3px;
+  cursor: pointer;
+  background-color: #fff;
+  color: #666;
+}
+.calendar-foot .calendar-time .calendar-time-box .calendar-time-minus:hover,
+.calendar-foot .calendar-time .calendar-time-box .calendar-time-plus:hover {
+  background-color: #f0f0f0;
+}
+.calendar-foot .calendar-time:hover {
+  width: 135px;
+  padding-left: 0;
+}
+.calendar-foot .calendar-time .calendar-time-box:hover {
+  padding-left: 15px;
+}
+.calendar-foot .calendar-time .calendar-time-box:hover .calendar-time-minus {
+  display: block;
+  left: 0px;
+}
+.calendar-foot .calendar-time .calendar-time-box:hover .calendar-time-plus {
+  display: block;
+  left: 40px;
+  font-size: 12px;
+  line-height: 12px;
+}
+.calendar-foot .calendar-time .calendar-time-box:hover span {
+  display: none;
+}
+.calendar-foot .calendar-time .calendar-time-box:hover input[type="text"] {
+  background-color: #f0f0f0;
 }
 .calendar-foot .calendar-time input[type="text"] {
-  float: left;
   margin: 0;
   width: 20px;
-  height: 14px;
-  padding: 3px;
+  height: 20px;
+  padding: 0;
   font-size: 12px;
-  border: 0 none;
-  line-height: 14px;
-  border-radius: 3px;
+  border: 1px solid #ddd;
+  text-align: center;
+  line-height: 20px;
 }
 .calendar-foot .calendar-time input[type="text"]:focus {
   outline: 0 none;
 }
 .calendar-foot .calendar-time span {
-  float: left;
   line-height: 20px;
 }
 .calendar-foot .calendar-btn {

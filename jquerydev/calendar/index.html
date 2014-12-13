@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../lib/default.css" type="text/css" />
     <link rel="stylesheet" href="jquery.calendar.css" type="text/css" />
-    <script type="text/javascript" src="../../lib/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="../../lib/jquery.min.js"></script>
     <script type="text/javascript" src="jquery.calendar.js"></script>
     <script type="text/javascript">
       $(function () {
@@ -29,6 +29,7 @@
         $('#t2').calendar({
           size: 6,
           time: true,
+          enable: [new Date, undefined],
           todayBtn: true,
           clearBtn: true
         });
@@ -56,9 +57,9 @@
     </div>
 
     <div class="s1">
-      <input class="date" type="text" id="t2" value="2014-09-09" readonly="readonly"/>
+      <input class="date" type="text" id="t2" readonly="readonly"/>
     </div>
-    <div class="s1">
+    <div class="s1" style="margin-top: 300px;">
       <input class="date" type="text" id="t3" readonly="readonly"/>
     </div>
 

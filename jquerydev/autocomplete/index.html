@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../lib/default.css" type="text/css" />
     <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
-    <script type="text/javascript" src="../../lib/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="../../lib/jquery.min.js"></script>
     <script type="text/javascript" src="jquery.autocomplete.js"></script>
     <script type="text/javascript">
       $(function () {
@@ -34,10 +34,13 @@
           source: function (pattern, response) {
             window.setTimeout(function () {
               response(source);
-            }, 1500);
+            }, 500);
           },
           width: 200,
           minlength: 0,
+          select: function (item) {
+            return item.label.indexOf('ja') > -1;
+          },
           render: function (item, pattern, highlight) {
             return highlight(item.label, pattern) + '<p>这是一段很长的文字描述</p>';
           }
