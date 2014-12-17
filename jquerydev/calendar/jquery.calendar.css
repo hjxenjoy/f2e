@@ -219,7 +219,7 @@
   top: 5px;
   width: 10px;
   height: 10px;
-  line-height: 10px;
+  line-height: 7px;
   font-size: 20px;
   text-align: center;
   border: 1px solid #ddd;
@@ -247,7 +247,7 @@
   display: block;
   left: 40px;
   font-size: 12px;
-  line-height: 12px;
+  line-height: 9px;
 }
 .calendar-foot .calendar-time .calendar-time-box:hover span {
   display: none;
@@ -264,6 +264,7 @@
   border: 1px solid #ddd;
   text-align: center;
   line-height: 20px;
+  cursor: text;
 }
 .calendar-foot .calendar-time input[type="text"]:focus {
   outline: 0 none;

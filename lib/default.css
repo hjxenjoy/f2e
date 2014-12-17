@@ -1,9 +1,10 @@
 @charset "utf-8";
 
 body {
-  padding: 50px 0;
+  padding: 50px;
   color: #454545;
   -webkit-font-smoothing: antialiased;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   font-size: 14px;
 }
 
@@ -24,7 +25,7 @@ input[type="text"].date {
 }
 
 input[type="text"].date-mini {
-  width: 100px;
+  width: 120px;
   height: 20px;
   line-height: 20px;
   cursor: pointer;

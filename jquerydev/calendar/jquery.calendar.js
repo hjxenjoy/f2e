@@ -1,24 +1,24 @@
 /**
  * 基于jQuery的日期插件
- * jquery.calendar.js
- * @base jquery-1.8.3.js
+ * @base jquery@v1.8.3 & jquery.mousewheel@v3.1.2
  * @author hjxenjoy@foxmail.com
- * @date 2014-09-09
+ * @url https://github.com/hjxenjoy/f2e/issues/2
+ * @date 2014-12-17
  */
-;(function(root, factory) {
+;(function(factory) {
 
   if (typeof define === 'function' && define.amd) {
-    define(factory);
+    define(['jquery'], factory);
   } else if (typeof exports === 'object') {
     module.exports = factory();
   } else {
-    factory(root);
+    factory(jQuery);
   }
 
-})(this, function(global, undefined) {
+})(function($) {
   'use strict';
 
-  var $ = global.jQuery,
+  var
     namespace = 'calendar-api',
     _slice = Array.prototype.slice,
     _match = String.prototype.match,
@@ -78,6 +78,22 @@
    */
   function isDate(date) {
     return _toString.call(date) === '[object Date]';
+  }
+
+  /**
+   * 比较两天，年月日时分秒
+   * @param date1
+   * @param date2
+   */
+  function compareFullDate(date1, date2) {
+    var d1 = date1, d2 = date2;
+    if (isDate(date1)) {
+      d1 = date2Str(date1, '', 6).match(/\d/g).join('');
+    }
+    if (isDate(date2)) {
+      d2 = date2Str(date2, '', 6).match(/\d/g).join('');;
+    }
+    return d1 - d2;
   }
 
   /**
@@ -289,12 +305,15 @@
     var wh = $w.outerHeight();
     var ww = $w.outerWidth();
 
+    // 元素距离浏览器顶部的相对距离
+    var relativeTop = pos.top - $w.scrollTop();
+
     var csser = {
       'position': 'absolute',
       'zIndex': zIndex
     };
     // target higher than half page
-    if ( pos.top < wh / 2) {
+    if ( relativeTop < wh / 2) {
       csser.top = (pos.top + height + 1) + 'px';
       csser.bottom = 'auto';
       // target on right side
@@ -345,15 +364,20 @@
       if (this.isText) {
         if (this.element.value) {
           this.calendar = new Calendar(this.element.value);
-          var datestr = date2Str(this.calendar.date, '', 6).match(/\d/g).join('');
-          // 已经设定的时分秒
-          this.hms = datestr.substring(8);
-          // 已经设定的年月日
-          this.ymd = datestr.substr(0, 8);
         }
 
       } else {
         this.calendar = new Calendar(this.options.date || new Date());
+      }
+
+      if (this.options.time &&
+        ((this.isText && this.calendar) ||
+        (this.options.hasSiblings && this.options.pairTarget.val()))) {
+        var datestr = date2Str(this.calendar.d, '', 6).match(/\d/g).join('');
+        // 已经设定的时分秒
+        this.hms = datestr.substring(8);
+        // 已经设定的年月日
+        this.ymd = datestr.substr(0, 8);
       }
 
       // 最小,最大日期
@@ -436,105 +460,148 @@
       ];
       this.$foot.append(html.join(''));
 
+      this.listenTimes();
+    },
+
+    listenTimes: function () {
+
       var that = this;
       var min, max;
       var minTime = '000000', minDate = 0, maxDate = 0, maxTime = '000000';
 
+      var timeBox = this.$foot.find('.calendar-time-box ');
+      var plus = this.$foot.find('.calendar-time-plus');
+      var minus = this.$foot.find('.calendar-time-minus');
+
+      timeBox.off('mousewheel.control-times');
+      plus.off('click.control-time');
+      minus.off('click.control-time');
+
       if (this.minDate) {
-        min = date2Str(min, '', 6).match(/\d/g).join('');
+        min = date2Str(this.minDate, '', 6).match(/\d/g).join('');
         minDate = min.substr(0, 8);
         minTime = min.substring(8);
       }
       if (this.maxDate) {
-        max = date2Str(max, '', 6).match(/\d/g).join('');
+        max = date2Str(this.maxDate, '', 6).match(/\d/g).join('');
         maxDate = max.substr(0, 8);
         maxTime = max.substring(8);
       }
 
-      this.$foot.find('.calendar-time-plus').on('click.control-time', function () {
+      // depend jquery.mousewheel.js
+      timeBox.on('mousewheel.control-times', function(event) {
+        //console.log(event.deltaX, event.deltaY, event.deltaFactor);
+        //console.log('deltaY' in event);
+        if (!('deltaY' in event)) {
+          return true;
+        }
+        var $this = $(this);
+        var input = $this.find('input')[0];
+        // 向下滚动
+        if (event.deltaY > 0) {
+          that.reduceTimes(input, $this, minDate, minTime);
+        } else {
+          that.addTimes(input, $this, maxDate, maxTime);
+        }
+        event.preventDefault();
+      });
+
+
+      plus.on('click.control-time', function () {
         var $this = $(this);
         var $parent = $this.parent('.calendar-time-box');
         var input = $parent.find('input')[0];
-        var isToday = that.ymd - maxDate === 0;
-        // 今天的时分秒小于最晚时分秒要求
-        if (isToday && that.hms - maxTime > 0) {
-          return false;
-        }
-
-        var hour, minute, second;
-        // control hour
-        if ($parent.hasClass('calendar-hour')) {
-          var v = input.value * 1;
-          if (v < 23) {
-            if (isToday && maxTime.substr(0, 2) - v <= 0) {
-              return false;
-            }
-            input.value = lenNum(v + 1);
-          }
-        } else if ($parent.hasClass('calendar-minute'))  {
-          var v = input.value * 1;
-          if (isToday && maxTime.substr(2, 2) - v <= 0) {
-            return false;
-          }
-          if (v < 59) {
-            input.value = lenNum(v + 1);
-          }
-        } else if ($parent.hasClass('calendar-second'))  {
-          var v = input.value * 1;
-          if (isToday && maxTime.substr(4, 2) - v <= 0) {
-            return false;
-          }
-          if (v < 59) {
-            input.value = lenNum(v + 1);
-          }
-        }
-
-        if (that.ymd) {
-          that.set(that.ymd);
-        }
+        that.addTimes(input, $parent, maxDate, maxTime);
       });
 
-      this.$foot.find('.calendar-time-minus').on('click.control-time', function () {
+      minus.on('click.control-time', function () {
         var $this = $(this);
         var $parent = $this.parent('.calendar-time-box');
         var input = $parent.find('input')[0];
+        that.reduceTimes(input, $parent, minDate, minTime);
+      });
+    },
 
-        var isToday = that.ymd - minDate === 0;
-        // 今天的时分秒大于最早时分秒要求
-        if (isToday && that.hms - minTime < 0) {
+    addTimes: function (input, $parent, maxDate, maxTime) {
+      var isToday = this.ymd - maxDate === 0;
+      // 今天的时分秒小于最晚时分秒要求
+      if (isToday && this.hms - maxTime > 0) {
+        return false;
+      }
+
+      var hour, minute, second;
+      // control hour
+      if ($parent.hasClass('calendar-hour')) {
+        var v = input.value * 1;
+        if (v < 23) {
+          if (isToday && maxTime.substr(0, 2) - v <= 0) {
+            return false;
+          }
+          input.value = lenNum(v + 1);
+        }
+      } else if ($parent.hasClass('calendar-minute'))  {
+        var v = input.value * 1;
+        if (isToday && maxTime.substr(2, 2) - v <= 0) {
           return false;
         }
-        // control hour
-        if ($parent.hasClass('calendar-hour')) {
-          var v = input.value * 1;
-          if (v > 0) {
-            if (isToday && minTime.substr(0, 2) - v >= 0) {
-              return false;
-            }
-            input.value = lenNum(v - 1);
-          }
-        } else if ($parent.hasClass('calendar-minute'))  {
-          var v = input.value * 1;
-          if (isToday && minTime.substr(2, 2) - v >= 0) {
-            return false;
-          }
-          if (v > 0) {
-            input.value = lenNum(v - 1);
-          }
-        } else if ($parent.hasClass('calendar-second'))  {
-          var v = input.value * 1;
-          if (isToday && minTime.substr(4, 2) - v >= 0) {
-            return false;
-          }
-          if (v > 0) {
-            input.value = lenNum(v - 1);
-          }
+        if (v < 59) {
+          input.value = lenNum(v + 1);
         }
+      } else if ($parent.hasClass('calendar-second'))  {
+        var v = input.value * 1;
+        if (isToday && maxTime.substr(4, 2) - v <= 0) {
+          return false;
+        }
+        if (v < 59) {
+          input.value = lenNum(v + 1);
+        }
+      }
 
-        if (that.ymd) {
-          that.set(that.ymd);
+      if (this.isText && this.$element.val() && this.ymd) {
+        this.set(this.ymd);
+      } else if (this.options.hasSiblings && this.options.pairTarget.val() && this.ymd) {
+        this.set(this.ymd);
+      }
+    },
+
+    reduceTimes: function (input, $parent, minDate, minTime) {
+      var isToday = this.ymd - minDate === 0;
+      // 今天的时分秒大于最早时分秒要求
+      if (isToday && this.hms - minTime <= 0) {
+        return false;
+      }
+      // control hour
+      if ($parent.hasClass('calendar-hour')) {
+        var v = input.value * 1;
+        if (v > 0) {
+          if (isToday && minTime.substr(0, 2) - v >= 0) {
+            return false;
+          }
+          input.value = lenNum(v - 1);
         }
-      });
+      } else if ($parent.hasClass('calendar-minute'))  {
+        var v = input.value * 1;
+        if (isToday && minTime.substr(2, 2) - v >= 0) {
+          return false;
+        }
+        if (v > 0) {
+          input.value = lenNum(v - 1);
+        }
+      } else if ($parent.hasClass('calendar-second'))  {
+        var v = input.value * 1;
+        if (isToday && minTime.substr(4, 2) - v >= 0) {
+          return false;
+        }
+        if (v > 0) {
+          input.value = lenNum(v - 1);
+        }
+      }
+
+      if (this.isText && this.$element.val() && this.ymd) {
+        this.set(this.ymd);
+      } else if (this.options.hasSiblings && this.options.pairTarget.val() && this.ymd) {
+        this.set(this.ymd);
+      }
     },
 
     addToday: function () {
@@ -919,6 +986,7 @@
       if (this.viewMode === viewMode.month) {
         this.month();
       }
+      this.listenTimes();
       return this;
     },
 
@@ -928,12 +996,18 @@
       if (this.isText) {
         this.element.value = '';
       }
+      if (this.options.hasSiblings) {
+        this.options.pairTarget.val('');
+      }
 
       if (this.$wrap.hasClass('open')) {
         this.$body.find('.calendar-cell-selected')
                   .removeClass('calendar-cell-selected');
       }
 
+      if (this.options.time) {
+        this.$foot.find('.calendar-time').find('input').val('00');
+      }
       (this.options.clear || function () {})();
 
       return this;
@@ -946,11 +1020,24 @@
       if (!isDate(date)) {
         date = str2Date(date);
       }
+      // 时分秒赋值
       if (this.options.time) {
         var times = this.$foot.find('.calendar-time').find('input');
         date.setHours(times[0].value);
         date.setMinutes(times[1].value);
         date.setSeconds(times[2].value);
+
+        // 当处于临界日时，需要另外判断一次时间的准确性
+        if (this.minDate && compareFullDate(this.minDate, date) > 0) {
+          date = new Date(this.minDate);
+        }
+        if (this.maxDate && compareFullDate(date, this.maxDate) > 0) {
+          date = new Date(this.maxDate);
+        }
+
+        times[0].value = lenNum(date.getHours());
+        times[1].value = lenNum(date.getMinutes());
+        times[2].value = lenNum(date.getSeconds());
       }
 
       var datestr = date2Str(date, '', 6).match(/\d/g).join('');
@@ -961,6 +1048,11 @@
       // 文本框触发
       if (this.isText) {
         this.element.value = date2Str(date, this.options.separator, this.options.size);
+      }
+      // 双日历
+      if (this.options.hasSiblings) {
+        this.options.pairTarget.val(date2Str(date, this.options.separator, this.options.size));
+        this.options.enable(date);
       }
 
       // 当前日期如果是显示状态，添加选择样式
@@ -1058,6 +1150,7 @@
     if (option.touchable == undefined) {
       this.touchable = true;
     }
+    this.options.hasSiblings = true;
     this.init();
   }
   CalendarPair.prototype = {
@@ -1098,6 +1191,7 @@
           date: startDate,
           active: true,
           closable: false,
+          pairTarget: that.element.start,
           // 2014-10-21修改，区间日期没有自动添加选中样式
           after: function (year, month, dateList) {
             var selDate = that.element.start.val();
@@ -1111,22 +1205,21 @@
             }
           },
           clear: function () {
-            that.element.start.val('');
             // 重置结束日期的最小值
-            end.calendar('enable', true, enable[0], enable[1]).set(that.element.end.val());
+            end.calendar('enable', true, enable[0], enable[1]);
           },
           dateClick: function (date) {
-            that.element.start.val(date2Str(date, that.options.separator, that.options.size));
             start.calendar('set', date);
-
+          },
+          enable: function (date) {
             var maxDate = enable[1];
             if ($.isFunction(scope)) {
               maxDate = scope(new Date(date))[1];
             }
             if (!that.touchable) {
-              date.setDate(date.getDate() + 1)
+              date.setDate(date.getDate() + 1);
             }
-            end.calendar('enable', date, maxDate).set(that.element.end.val());
+            end.calendar('enable', date, maxDate);
           }
         }),
         // 结束日期插件参数
@@ -1134,6 +1227,7 @@
           date: endDate,
           active: true,
           closable: false,
+          pairTarget: that.element.end,
           after: function (year, month, dateList) {
             var selDate = that.element.end.val();
             if (selDate) {
@@ -1146,14 +1240,13 @@
             }
           },
           clear: function () {
-            that.element.end.val('');
             // 重置开始日期的最大值
-            start.calendar('enable', true, enable[0], enable[1]).set(that.element.start.val());
+            start.calendar('enable', true, enable[0], enable[1]);
           },
           dateClick: function (date) {
-            that.element.end.val(date2Str(date, that.options.separator, that.options.size));
             end.calendar('set', date);
-
+          },
+          enable: function (date) {
             var minDate = enable[0];
             if ($.isFunction(scope)) {
               minDate = scope(new Date(date))[0];
@@ -1161,7 +1254,7 @@
             if (!that.touchable) {
               date.setDate(date.getDate() - 1);
             }
-            start.calendar('enable', minDate, date).set(that.element.start.val());
+            start.calendar('enable', minDate, date);
           }
         });
 
