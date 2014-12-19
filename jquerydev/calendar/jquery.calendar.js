@@ -18,6 +18,20 @@
 })(function($) {
   'use strict';
 
+  if (!$.HjxCtrl) {
+    $.HjxCtrl = {};
+  }
+  $.HjxCtrl.calendar = false;
+  $.HjxCtrl.setCalendar = function () {
+    $.HjxCtrl.calendar = true;
+  };
+  $.HjxCtrl.clearCalendar = function () {
+    $.HjxCtrl.calendar = false;
+  };
+  $.HjxCtrl.getCalendar = function () {
+    return $.HjxCtrl.calendar;
+  };
+
   var
     namespace = 'calendar-api',
     _slice = Array.prototype.slice,
@@ -626,12 +640,15 @@
             closeCalendar();
             that.open();
           }
-          e.stopPropagation();
+          $.HjxCtrl.setCalendar();
         });
       }
 
+      // 只有点击可关闭的日期视图时，才会阻止关闭日历, 否则都会关闭任何已经打开的日历
       this.$wrap.on('click.stop-close-calendar', function (e) {
-        e.stopPropagation();
+        if (that.$wrap.hasClass('calendar-closable')) {
+          e.stopPropagation();
+        }
       });
 
       this.$top
@@ -1086,6 +1103,7 @@
         lessThanMax = errors[1] > -1;
 
       this.$wrap.addClass('open');
+
       if (this.isText) {
         setPosition(this.$element, this.$wrap, this.options.zIndex);
       }
@@ -1292,7 +1310,7 @@
           parent.addClass('open');
           setPosition($(this), parent, that.options.zIndex);
         }
-        e.stopPropagation();
+        $.HjxCtrl.setCalendar();
       });
 
       this.element.end.on('click.toggle-calendar-pair', function (e) {
@@ -1303,7 +1321,7 @@
           parent.addClass('open');
           setPosition($(this), parent, that.options.zIndex);
         }
-        e.stopPropagation();
+        $.HjxCtrl.setCalendar();
       });
 
       start.find('.calendar-clear')
@@ -1329,7 +1347,10 @@
   }
 
   $(document)
-    .on('click.calendar-api', function () {
-      closeCalendar();
+    .on('click.calendar-api', function (e) {
+      if (!$.HjxCtrl.getCalendar()) {
+        closeCalendar();
+      }
+      $.HjxCtrl.clearCalendar()
     });
 });

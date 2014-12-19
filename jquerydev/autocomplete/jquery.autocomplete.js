@@ -1,411 +1,412 @@
 /**
- * 基于jQuery的模糊查询插件
- * jquery.autocomplete.js
- * @base jquery-1.8.3
- * @author hjxenjoy@foxmail.com
- * @date 2014-08-22
- *
- * @2014-11-07 修改select实现，参数配置中的select用来让用户进行提前判断，返回boolean，判断是否进行赋值
+ * Copyright (c) 2014 hjxenjoy
  */
-;(function(global){
+;(function(factory) {
+
+  if (typeof define === 'function' && define.amd) {
+    define(['jquery'], factory);
+  } else if (typeof exports === 'object') {
+    module.exports = factory();
+  } else {
+    factory(jQuery);
+  }
+
+})(function($) {
   'use strict';
 
-  var $ = global.jQuery,
-      namespace = 'autocomplete-api',
-      // 监听文本框内容变化事件
-      inputEvent = 'propertychange.autocomplete-api input.autocomplete-api',
-      _slice = [].slice,
-      _replace = String.prototype.replace,
-      zIndex = 100,
-      config = {
-        // 是否多选(tags)
-        multiple: false,
-        // 数据源/查询数据源方法
-        source: null,
-        // 输入最少多少字符激活查询匹配
-        minlength: 3,
-        // 插件z-index，防止被覆盖
-        zIndex: 0,
-        // 模糊查询默认提示, multiple==false时生效
-        placeholder: '请选择',
-        // 动态查询数据时提示信息
-        loading: '正在查询...',
-        // 查询/匹配结果为空时信息
-        empty: '无匹配数据',
-        // 默认一次最多显示结果个数
-        size: 10,
-        // 视图宽度，单位px
-        width: 300,
-        dropdown: {
-          // 下拉宽度
-          width: 300,
-          // 下拉结果list最大高度
-          maxHeight: 200
-        },
-        // 格式化提供的数据list为插件所需格式
-        format: null,
-        // 进行查询匹配时，匹配的对象key数组
-        target: 'label', // or ['label', 'value']
-        // 选择数据
-        select: null,
-        // 渲染
-        render: null,
-        // 清空所选
-        clear: null,
-        // 值变化(包括清空)时
-        change: null,
-        // 冻结，变为只读模式
-        freeze: null,
-        // 解冻
-        unfreeze: null
-      };
+  if (!$.HjxCtrl) {
+    $.HjxCtrl = {};
+  }
+  $.HjxCtrl.autocomplete = false;
+
+  $.HjxCtrl.setAC = function () {
+    $.HjxCtrl.autocomplete = true;
+  };
+  $.HjxCtrl.clearAC = function () {
+    $.HjxCtrl.autocomplete = false;
+  };
+  $.HjxCtrl.getAC = function () {
+    return $.HjxCtrl.autocomplete;
+  };
+
+  var namespace = 'autocomplete-api';
+  var times = 500;
+  var acSet = [];
+  var _slice = Array.prototype.slice;
+  var random = function (prefix) {
+    var r =  Math.random().toString(36).substr(2);
+    return (typeof prefix === 'string' ? prefix : '') + r;
+  };
+
+  var setPosition = function (target, dropdown) {
+    var pos = target.offset();
+    var height = target.outerHeight();
+    var width = target.outerWidth();
+    var $w = $(window);
+    var wh = $w.outerHeight();
+    var ww = $w.outerWidth();
+
+    // 元素距离浏览器顶部的相对距离
+    var relativeTop = pos.top - $w.scrollTop();
+    var isTopSide = true;
+    var csser = {};
+    // target higher than half page
+    if ( relativeTop < wh / 2) {
+      csser.top = (pos.top + height + 1) + 'px';
+      csser.bottom = 'auto';
+      // target on right side
+      if (pos.left > ww /2) {
+        csser.right = (ww - width - pos.left) + 'px';
+        csser.left = 'auto';
+      } else {
+        csser.right = 'auto';
+        csser.left = pos.left + 'px';
+      }
+    } else { // target lower than half page
+      isTopSide = false;
+      csser.top = 'auto';
+      csser.bottom = (wh - pos.top + 1) + 'px';
+      // target on right side
+      if (pos.left > ww /2) {
+        csser.right = (ww - width - pos.left) + 'px';
+        csser.left = 'auto';
+      } else {
+        csser.right = 'auto';
+        csser.left = pos.left + 'px';
+      }
+    }
+    dropdown.css(csser);
+
+    return isTopSide;
+  };
+
+  var setting = {
+    multiple    : false,             // 是否多选
+    source      : null,              // 数据源 or 查询数据源方法
+    minlength   : 0,                 // 最少输入查询关键字长度激活查询
+    zIndex      : null,
+    placeholder : '请选择',
+    prompt      : '请输入关键字查询',
+    empty       : '无匹配数据',
+    size        : null,              // 自定义一次显示多少条数据
+    width       : null,              // 自定义宽度
+    dropdown    : {},                // 下拉属性 width, maxHeight
+
+    format      : null,              // 格式化数据为插件识别的JSON格式
+    target      : null,              // 是否需要对后台数据进行匹配，进行匹配的key集合
+    select      : null,              // 判断数据，是否可以进行赋值 Promise
+    render      : null,              // 渲染下拉数据
+    clear       : null,              // 清除已选值
+    change      : null,              // 当值改变时
+    freeze      : null,              // 冻结，插件只读不可编辑
+    unfreeze    : null               // 解冻
+  };
 
   function Autocomplete(element, options) {
     this.element = element;
     this.options = options;
     this.init();
   }
+
   Autocomplete.prototype = {
     constructor: Autocomplete,
+    author: 'hujx',
 
     init: function () {
-      var source = this.options.source,
-          dropdown = this.options.dropdown,
-          that = this;
-      // change之前的值
-      this.ex = [];
+      var that = this;
+      var source = this.options.source;
+      var format = this.options.format || that.format;
 
-      // 静态数据源，初始化时直接格式化缓存
-      this.isStatic = (typeof source !== 'function');
+      // change之前的所选item
+      this.ex = null;
+
+      // 静态本地数据源
+      this.isStatic = typeof source !== 'function';
+      // 静态数据源，查询匹配由插件完成
       if (this.isStatic) {
         this.list = $.map(source, function (item) {
-          return that.format(item);
+          return format(item);
         });
       }
 
       if (this.options.multiple) {
         this.createTags();
+        this.listenTags();
       } else {
-        this.create();
-      }
-
-      // 设置了索引偏差
-      if (this.options.zIndex !== 0) {
-        this.parent.css('zIndex', zIndex + this.options.zIndex);
-      } else {
-        this.parent.css('zIndex', zIndex--);
-      }
-
-      if (dropdown.width) {
-        this.dropdown.css('width', (dropdown.width - 2) + 'px');
-      }
-      if (dropdown.maxHeight) {
-        this.dropdown.find('.ac-result').css(
-          'maxHeight', dropdown.maxHeight + 'px'
-        );
-      }
-
-    },
-
-    // 创建模糊查询视图--单选
-    create: function () {
-      var
-      width = this.options.width,
-      rid = 'autocomplete' + _replace.call(Math.random(), /\D/, ''),
-      html = [
-        '<div class="autocomplete" id="' + rid + '">',
-        '  <div class="ac-view">',
-        '    <div class="ac-label ac-place">',
-        this.options.placeholder + '</div>',
-        '    <span class="ac-caret"></span>',
-        '  </div>',
-        '  <div class="ac-dropdown hide">',
-        '    <input type="text" class="ac-search" autocomplete="false"/>',
-        '    <div class="ac-result">',
-        '      <div class="ac-loading hide"></div>',
-        '      <div class="ac-message hide"></div>',
-        '      <ul></ul>',
-        '      <p></p>',
-        '    </div>',
-        '  </div>',
-        '</div>'
-      ];
-      this.element.before(html.join(''));
-
-      // 对象缓存
-      this.parent = $('#' + rid);
-      this.view = this.parent.find('.ac-view');
-      this.label = this.parent.find('.ac-label');
-      this.dropdown = this.parent.find('.ac-dropdown');
-      this.searcher = this.parent.find('.ac-search');
-      this.result = this.parent.find('ul');
-      this.loading = this.parent.find('.ac-loading');
-      this.message = this.parent.find('.ac-message');
-
-      this.listen();
-
-      // 判断是否存在值
-      var existLabel = this.element.data('autocomplete'),
-        value = this.element.val();
-      if (value) {
-        existLabel = existLabel ? existLabel : value;
-        this.label.text(existLabel).removeClass('ac-place');
-        this.ex = [{label: existLabel, value: value }];
-      }
-
-      if (width > 0) {
-        this.parent.css('width', width + 'px');
-        this.label.css('width', (width - 34) + 'px');
+        this.createDoms();
+        this.listen();
       }
     },
 
-    // 创建模糊查询视图--多选
-    createTags: function () {
-      var
-      width = this.options.width,
-      rid = 'autocomplete' + _replace.call(Math.random(), /\D/, ''),
-      html = [
-        '<div class="autocomplete ac-tags" id="' + rid + '">',
-        '  <div class="tags-cart">',
-        '    <input type="text" class="tags-search" autocomplete="false"/>',
-        '    <div class="tags-line"></div>',
-        '  </div>',
-        '  <div class="ac-dropdown hide">',
-        '    <div class="ac-result">',
-        '      <div class="ac-loading hide"></div>',
-        '      <div class="ac-message hide"></div>',
-        '      <ul></ul>',
-        '      <p></p>',
-        '    </div>',
-        '  </div>',
+    // 创建插件构成
+    createDoms: function () {
+      var ran = random();
+      var view_id = 'autocomplete_' + ran;
+      var dropdown_id = 'ac_dropdown_' + ran;
+
+      var view_html = [
+        '<div class="autocomplete-view" id="' + view_id + '">',
+        '  <input type="text"  class="ac-search" autocomplete="false" />',
+        '  <div class="ac-label ac-place">' + this.options.placeholder + '</div>',
+        '  <div class="ac-delete">&times;</div>',
+        '  <div class="ac-caret"></div>',
         '</div>'
       ];
-      this.element.before(html.join(''));
 
-      // 对象缓存
-      this.parent = $('#' + rid);
-      this.tagcart = this.parent.find('.tags-cart');
-      this.dropdown = this.parent.find('.ac-dropdown');
-      this.searcher = this.parent.find('.tags-search');
-      this.result = this.parent.find('ul');
-      this.loading = this.parent.find('.ac-loading');
-      this.message = this.parent.find('.ac-message');
+      var dropdown_html = [
+        '<div class="autocomplete-dropdown hide" id="' + dropdown_id + '">',
+        '  <div class="ac-prompt">',
+        '    <div class="ac-prompt-text">' + this.options.prompt + '</div>',
+        '    <div class="ac-loading"></div>',
+        '  </div>',
+        '  <div class="ac-result"></div>',
+        '</div>'
+      ];
 
-      this.listenTags();
+      this.element.after(view_html.join(''));
+      $('body').append(dropdown_html.join(''));
 
+      this.viewer = $('#' + view_id);
+      this.dropdowner = $('#' + dropdown_id);
+      this.searcher = this.viewer.find('.ac-search');
+      this.labeler = this.viewer.find('.ac-label');
+      this.resulter = this.dropdowner.find('.ac-result');
+      this.prompter = this.dropdowner.find('.ac-prompt');
+
+      var defaultLabel = this.element.data('autocomplete');
+      var defaultValue = this.element.val();
+      if (defaultValue) {
+        this.viewer.addClass('ac-has-value');
+        this.labeler.html(defaultLabel || defaultValue).removeClass('ac-place');
+        this.ex = {label: defaultLabel || defaultValue, value: defaultValue};
+      }
+
+      var width = this.options.width;
       if (width > 0) {
-        this.parent.css('width', width + 'px');
+        this.viewer.css('width', (width - 2) + 'px');
+        this.searcher.css('width', (width - 40) + 'px');
+      }
+
+      var dropdown = this.options.dropdown;
+      if (dropdown.width > 0) {
+        this.dropdowner.css('width', (dropdown.width - 2) + 'px');
+      }
+      if (dropdown.maxHeight > 0) {
+        this.resulter.css('maxHeight', (dropdown.maxHeight) + 'px');
       }
     },
 
     listen: function () {
       var that = this;
-      this.view.on('click.autocomplete-api', function () {
-        if (that.parent.hasClass('freeze')) {
-          return false;
-        }
-        that.toggle();
-      });
+      this.viewer
+        .on('click.show-dropdown', '.ac-label', function () {
+          if (!that.isFreeze) {
+            that.startEdit();
+          }
+        })
+        .on('click.toggle-dropdpwn', '.ac-caret', function () {
+          if (that.viewer.hasClass('ac-edit-view')) {
+            that.closeEdit();
+          } else {
+            that.startEdit();
+          }
+        })
+        .on('click.clear-autocomplete', '.ac-delete', function () {
+          that.clear();
+        });
 
       this.searcher
-      .on('keypress.autocomplete-api', function (e) {
-        // 阻止ENTER表单自动提交
-        if (e.keyCode === 13) {
-          that.select(that.result.find('li.hover').index());
-          e.preventDefault();
-        }
-      })
-      .on('keydown.autocomplete-api', function (e) {
-        var target, x = window.scrollX, y = window.scrollY;
-        if (e.keyCode === 38) {  // key up
-          target = that.result.find('li.hover').removeClass('hover');
-          if (target.prev('li').length) {
-            target.prev('li').addClass('hover')[0].scrollIntoView();
-          } else {
-            that.result.find('li').last()
-              .addClass('hover')[0].scrollIntoView();
+        .on('keypress.autocomplete-api', function (e) {
+          // 阻止ENTER表单自动提交
+          if (e.keyCode === 13) {
+            var item = that.resulter.find('li.active');
+            if (item.length > 0) {
+              that.select(that.cache[item.index()]).done(function (item) {
+                that.change(item).closeEdit();
+              });
+            } else {
+              that.closeEdit();
+            }
+            e.preventDefault();
           }
-          window.scrollTo(x, y);
-        } else if (e.keyCode === 40) {  // key down
-          target = that.result.find('li.hover').removeClass('hover');
-          if (target.next('li').length) {
-            target.next('li').addClass('hover')[0].scrollIntoView();
-          } else {
-            that.result.find('li').first()
-              .addClass('hover')[0].scrollIntoView();
+        })
+        .on('keydown.autocomplete-api', function (e) {
+          if (that.cache.length) {
+            if (e.keyCode === 38) {  // key up
+              that.up();
+              e.preventDefault();
+            } else if (e.keyCode === 40) {  // key down
+              that.down();
+              e.preventDefault();
+            }
           }
-          window.scrollTo(x, y);
-        }
-      });
-
-      this.searcher.on(inputEvent, function () {
-        // 防止IE下js改变文本框的值时触发propertychange事件
-        if (!that.dropdown.hasClass('hide')) {
-          that.match();
-        }
-      });
-
-      this.result
-        .on('click.autocomplete-api', 'li', function (e) {
-          that.select($(this).index());
-          e.stopPropagation();
         });
+
+      this.resulter
+        .on('click.select-item', 'li', function () {
+          that.select(that.cache[$(this).index()]).done(function (item) {
+            that.change(item).closeEdit();
+          });
+        });
+    },
+
+    createTags: function () {
+      var ran = random();
+      var view_id = 'autocomplete_' + ran;
+      var dropdown_id = 'ac_dropdown_' + ran;
+
+      var view_html = [
+        '<div class="autocomplete-view ac-tags" id="' + view_id + '">',
+        '  <input type="text" class="tags-search" autocomplete="false"/>',
+        '  <div class="tags-line"></div>',
+        '</div>'
+      ];
+
+      var dropdown_html = [
+        '<div class="autocomplete-dropdown hide" id="' + dropdown_id + '">',
+        '  <div class="ac-prompt">',
+        '    <div class="ac-prompt-text">' + this.options.prompt + '</div>',
+        '    <div class="ac-loading"></div>',
+        '  </div>',
+        '  <div class="ac-result"></div>',
+        '</div>'
+      ];
+
+      this.element.after(view_html.join(''));
+      $('body').append(dropdown_html.join(''));
+
+      // 对象缓存
+      this.viewer = $('#' + view_id);
+      this.dropdowner = $('#' + dropdown_id);
+      this.tagcart = this.viewer.find('.tags-cart');
+      this.searcher = this.viewer.find('.tags-search');
+      this.resulter = this.dropdowner.find('.ac-result');
+      this.prompter = this.dropdowner.find('.ac-prompt');
+
+      var width = this.options.width;
+      if (width > 0) {
+        this.viewer.css('width', (width - 2) + 'px');
+      }
+
+      var dropdown = this.options.dropdown;
+      if (dropdown.width > 0) {
+        this.dropdowner.css('width', (dropdown.width - 2) + 'px');
+      }
+      if (dropdown.maxHeight > 0) {
+        this.resulter.css('maxHeight', (dropdown.maxHeight) + 'px');
+      }
     },
 
     listenTags: function () {
-      var that = this;
-      this.searcher
-      .on('focus.toggle-dropdown', function () {
-        if (that.parent.hasClass('freeze')) {
-          return false;
-        }
-        if (that.options.minlength === 0) {
-          that.showDrop();
-        }
-      })
-      .on('keypress.autocomplete-api', function (e) {
-        if (e.keyCode === 13) {
-          that.select(that.result.find('li.hover').index());
-          e.preventDefault();
-        }
-      })
-      .on('keydown.autocomplete-api', function (e) {
-        var target, x = window.scrollX, y = window.scrollY;
-        if (e.keyCode === 38) {  // key up
-          target = that.result.find('li.hover').removeClass('hover');
-          if (target.prev('li').length) {
-            target.prev('li').addClass('hover')[0].scrollIntoView();
-          } else {
-            that.result.find('li').last()
-              .addClass('hover')[0].scrollIntoView();
-          }
-          window.scrollTo(x, y);
-        } else if (e.keyCode === 40) {  // key down
-          target = that.result.find('li.hover').removeClass('hover');
-          if (target.next('li').length) {
-            target.next('li').addClass('hover')[0].scrollIntoView();
-          } else {
-            that.result.find('li').first()
-              .addClass('hover')[0].scrollIntoView();
-          }
-          window.scrollTo(x, y);
-        } else if (e.keyCode === 8) { // delete or backspace
-          if (!this.value) {
-            that.remove(that.searcher.prev('.tags-label').find('.tag-close'));
-            e.preventDefault();
-          }
-        }
-      });
 
-      this.searcher.on(inputEvent, function () {
-        if (!that.dropdown.hasClass('hide')) {
+    },
+
+    up: function () {
+      var current = this.resulter.find('li.active');
+      var height = this.resulter.find('ul').outerHeight();
+      var top = this.resulter.scrollTop();
+      var prev = current.prev();
+      current.removeClass('active');
+      if (prev.length === 0) {
+        prev = this.resulter.find('li').last();
+        this.resulter.scrollTop(this.resulter.outerHeight());
+      } else {
+        this.resulter.scrollTop(top - current.outerHeight());
+      }
+      prev.addClass('active');
+    },
+    down: function () {
+      var current = this.resulter.find('li.active');
+      var height = this.resulter.find('ul').outerHeight();
+      var top = this.resulter.scrollTop();
+      var next = current.next();
+      current.removeClass('active');
+      if (next.length === 0) {
+        next = this.resulter.find('li').first();
+        this.resulter.scrollTop(0);
+      } else {
+        this.resulter.scrollTop(top + current.outerHeight());
+      }
+      next.addClass('active');
+    },
+
+    startEdit: function () {
+      $.each(acSet, function (i, data) {
+        data.closeEdit();
+      });
+      var that = this;
+
+      this.viewer.addClass('ac-edit-view');
+      this.searcher.val(this.ex ? this.ex.label : '').select();
+      this.dropdowner.removeClass('hide');
+      this.isTopSide = setPosition(this.viewer, this.dropdowner);
+
+      if (this.options.minlength === 0) {
+        this.match('');
+      }
+
+      this.searchKey = this.searcher.val();
+      this.interval = window.setInterval(function () {
+        if (that.searchKey !== that.searcher.val() && that.searchKey.length >= that.options.minlength) {
+          that.searchKey = that.searcher.val();
           that.match();
         }
-      });
-
-      this.result
-        .on('click.autocomplete-api', 'li', function (e) {
-          that.select($(this).index());
-          e.stopPropagation();
-        });
-
-      this.tagcart
-        .on('click.autocomplete.prevent', '.tags-label', function (e) {
-          e.stopPropagation();
-        })
-        .on('click.autocomplete.prevent', '.tags-search', function (e) {
-          e.stopPropagation();
-        })
-        .on('click.autocomplete.', '.tag-close', function () {
-          var $this = $(this);
-          that.remove($this);
-        })
-        .on('click.autocomplete.focus-search', function () {
-          that.searcher.focus();
-        });
+      }, times);
     },
 
-    // 下拉控制
-    toggle: function () {
-      this.dropdown.hasClass('hide') ? this.showDrop() : this.hideDrop();
-    },
-
-    // 关闭下拉
-    hideDrop: function () {
-      $('.ac-dropdown').addClass('hide').find('.ac-search').val('');
-    },
-
-    // 显示下拉
-    showDrop: function () {
-      this.hideDrop();
-      this.dropdown.removeClass('hide');
-      if (this.options.minlength === 0) {
-        // 下拉直接匹配数据
-        this.match();
-      }
-
-      if (!this.options.multiple) {
-        this.searcher.focus();
-      }
-    },
-
-    // 查询数据
-    search: function (pattern) {
-      var source = this.options.source,
-          defer = $.Deferred();
-      source(pattern, defer.resolve);
-      return defer.promise();
-    },
-
-    // 根据返回数据匹配数据列表
     match: function () {
-      var result1 = [],
-        result2 = [],
-        highlight = this.highlight,
-        target = this.options.target,
-        count = 0,
-        pattern = this.searcher.val(),
-        that = this;
+      var result1 = [];
+      var result2 = [];
+      var highlight = this.highlight;
+      var target = this.options.target;
+      var pattern = this.searchKey;
+      var count = 0;
+      var size = this.options.size;
+      var format = this.options.format || this.format;
+      var that = this;
 
       // clear data before
       this.cache = [];
-      this.result.html('');
+      this.resulter.empty();
 
       if (this.isStatic) {
         $.each(this.list, function (i, item) {
           var li = '';
           if (!pattern || item.label.indexOf(pattern) > -1) {
             li = '<li>' + that.render(item, pattern, highlight) + '</li>';
-            if (that.isEqual(target, item, pattern)) {
+            if (that.isEqual(target || ['label'], item, pattern)) {
               result1.push([item, li]);
             } else {
               result2.push([item, li]);
             }
             count += 1;
-            if (count >= that.options.size) {
+            if (size && count >= size) {
               return false;
             }
           }
         });
         this.display(result1.concat(result2));
       } else {
-        this.loading.removeClass('hide').text(this.options.loading);
+        this.dropdowner.addClass('ac-is-loading');
         this.search(pattern).done(function (list) {
           that.list = $.map(list, function (item) {
-            return that.format(item);
+            return format(item);
           });
         }).done(function () {
-          that.loading.addClass('hide').text('');
+          that.dropdowner.removeClass('ac-is-loading');
           $.each(that.list, function (i, item) {
             var li = '<li>' + that.render(item, pattern, highlight) + '</li>';
-            if (that.isEqual(target, item, pattern)) {
-              result1.push([item, li]);
+            if (target) {
+              if (that.isEqual(target, item, pattern)) {
+                result1.push([item, li]);
+              } else {
+                result2.push([item, li]);
+              }
             } else {
-              result2.push([item, li]);
+              result1.push([item, li]);
             }
-
             count += 1;
-            if (count >= that.options.size) { // 控制显示条目个数
+            if (size && count >= size) { // 控制显示条目个数
               return false;
             }
           });
@@ -414,12 +415,19 @@
       }
     },
 
+    search: function (pattern) {
+      var source = this.options.source;
+      var defer = $.Deferred();
+      source(pattern, defer.resolve);
+      return defer.promise();
+    },
+
     // 判断搜索条件是否与目标完全相等
     isEqual: function (targets, item, pattern) {
       if ($.isArray(targets)) {
         return $.map(targets, function (target) {
-          return item[target] === pattern ? 1 : 0;
-        }).join('').indexOf('1') > -1;
+            return item[target] === pattern ? 1 : 0;
+          }).join('').indexOf('1') > -1;
       } else if (typeof targets === 'string') {
         return item[targets] === pattern;
       } else {
@@ -429,31 +437,41 @@
 
     // 显示匹配结果
     display: function (result) {
+      result = this.isTopSide ? result : result.reverse();
       var html = [], cache = [];
       $.each(result, function (i, array) {
         cache.push(array[0]);
         html.push(array[1]);
       });
       this.cache = cache;
-      this.result.html(html.join(''));
-      if (html.length) {
-        this.message.addClass('hide').text('');
-        this.result.removeClass('hide')
-        .find('li').on('mouseenter', function () {
-          $(this).addClass('hover').siblings('.hover').removeClass('hover');
-        }).first().addClass('hover');
+      if (result.length > 0) {
+        this.resulter.html('<ul>' + html.join('') + '</ul>');
       } else {
-        this.result.addClass('hide');
-        this.message.removeClass('hide').text(this.options.empty);
+        this.resulter.html('<div class="ac-empty">' + this.options.empty + '</div>');
+      }
+
+      // 是否逆向显示
+      if (this.isTopSide) {
+        this.resulter.before(this.prompter);
+        this.dropdowner.removeClass('ac-result-reverse');
+        this.resulter.scrollTop(0);
+        this.resulter.find('li')
+          .on('mouseenter', function () {
+            $(this).addClass('active').siblings('.active').removeClass('active');
+          }).first().addClass('active');
+      } else {
+        this.resulter.after(this.prompter);
+        this.dropdowner.addClass('ac-result-reverse');
+        this.resulter.scrollTop(this.resulter.find('ul').outerHeight());
+        this.resulter.find('li')
+          .on('mouseenter', function () {
+            $(this).addClass('active').siblings('.active').removeClass('active');
+          }).last().addClass('active');
       }
     },
 
     // 格式化数据为所需格式[{label:'', value: ''}]
     format: function (item) {
-      var _format = this.options.format;
-      if (typeof _format === 'function') {
-        return _format(item);
-      }
       return {label: item, value: item, self: item};
     },
 
@@ -468,118 +486,54 @@
 
     // 高亮
     highlight: function (target, pattern) {
-      var reg = new RegExp('(' + pattern + ')', 'i');
-      return target.replace(reg, '<em>$1</em>');
-    },
-
-    // 选择一条
-    select: function (index) {
-      var item = this.cache[index];
-      if ($.isFunction(this.options.select) && !this.options.select(item)) {
-        return this;
-      }
-      if (this.options.multiple) {
-        this.add(index);
+      if (pattern) {
+        var reg = new RegExp('(' + pattern + ')', 'i');
+        return target.replace(reg, '<em>$1</em>');
       } else {
-        this.replace(index);
+        return target;
       }
     },
 
-    // 覆盖，for单选
-    replace: function (index) {
-      var item = this.cache[index],
-//        _select = this.options.select || function () {};
-        before = this.ex[0] || {};
-
-      if (before.value !== item.value) {
-        this.element.val(item.value);
-        this.label.text(item.label).removeClass('ac-place');
-        this.ex = [item];
-//        _select(item);
-
-        this.change(item);
-      }
-      this.hideDrop();
+    closeEdit: function () {
+      this.viewer.removeClass('ac-edit-view');
+      this.dropdowner.addClass('hide');
+      this.searcher.val('');
+      this.searchKey = '';
+      this.resulter.empty();
+      window.clearInterval(this.interval);
     },
 
-    // 添加一条进入已选cu，for多选
-    add: function (index) {
-      var item = this.cache[index],
-//        _select = this.options.select || function () {},
-        exist = false;
-
-      // 重复性查找
-      $.each(this.ex, function (i, before) {
-        if ((before || {}).value === item.value) {
-          exist = true;
-          return false;
-        }
-      });
-
-      if (!exist) {
-        this.ex.push(item);
-        this.searcher.before(this.tagHtml(item));
-
-        // 多选不会给表单赋值，需要手动添加所需格式值
-//        _select(this.ex);
-
-        this.change(this.ex);
-      }
-
-      this.hideDrop();
-      this.searcher.val('').focus();
-    },
-
-    // 多选插件一项的HTML代码生成
-    tagHtml: function (item) {
-      var
-      index = this.ex.length - 1,
-      html = [
-        '<div class="tags-label">',
-        '  <span class="tag-text">' + item.label + '</span>',
-        '  <span class="tag-close" data-index="' + index + '">&times;</span>',
-        '</div>'
-      ];
-      return html.join('');
-    },
-
-    // 从已选中删除一条，for多选
-    remove: function (label) {
-      var index = label.data('index');
-      label.parent().remove();
-      this.searcher.focus();
-
-      delete this.ex[index];
-      while(this.ex.length > 0 && !this.ex[this.ex.length - 1]) {
-        this.ex.pop();
-      }
-      (this.options.select || function () {})(this.ex);
-      this.change(this.ex);
-    },
-
-    // 清空已选
     clear: function () {
-      this.ex = [];
-      if (this.options.multiple) {
-        this.searcher.siblings('.tags-label').remove();
-        this.change(this.ex);
-      } else {
-        this.label.text(this.options.placeholder).addClass('ac-place');
-        this.element.val('');
-        this.element.removeData('autocomplete');
-        this.change();
-      }
+      this.ex = null;
+      this.element.val('');
+      this.labeler.html(this.options.placeholder).addClass('ac-place');
+      this.viewer.removeClass('ac-has-value');
+      (this.options.clear || function () {})();
       return this;
     },
-
-    // 值变化时(when select or clear)
-    change: function (cu) {
-      (this.options.change || function () {})(cu);
+    change: function (item) {
+      this.ex = item;
+      this.element.val(item.value);
+      this.labeler.html(item.label).removeClass('ac-place');
+      this.viewer.addClass('ac-has-value');
+      (this.options.change || function () {})(item);
+      return this;
+    },
+    select: function (item) {
+      var _select = this.options.select;
+      var defer = $.Deferred();
+      if ($.isFunction(_select)) {
+        _select(item, defer);
+      } else {
+        defer.resolve(item);
+      }
+      return defer.promise();
     },
 
     // 冻结，只读模式
     freeze: function () {
-      this.parent.addClass('freeze');
+      this.viewer.addClass('freeze');
+      this.isFreeze = true;
       this.searcher.attr('readonly', 'readonly');
       (this.options.freeze || function () {})();
       return this;
@@ -587,7 +541,8 @@
 
     // 解冻，编辑模式
     unfreeze: function () {
-      this.parent.removeClass('freeze');
+      this.viewer.removeClass('freeze');
+      this.isFreeze = false;
       this.searcher.removeAttr('readonly');
       (this.options.unfreeze || function () {})();
       return this;
@@ -596,14 +551,9 @@
     // 获取插件已选值
     get: function () {
       if (this.options.multiple) {
-        return $.map(this.ex, function (item) {
-          return {
-            label: item.label,
-            value: item.value
-          };
-        });
+        return [];
       } else {
-        var item = this.ex[0] || {};
+        var item = this.ex || {};
         return {
           label: item.label || '',
           value: item.value || ''
@@ -614,71 +564,61 @@
     // 重新给插件赋值
     set: function (param) {
       var html = [];
-      if ($.isArray(param) && this.options.multiple) {
-        $.each(param, function (index, item) {
-          html[html.length] = '' +
-          '<div class="tags-label">' +
-          '<span class="tag-text">' + item.label + '</span>' +
-          '<span class="tag-close" data-index="' + index + '">&times;</span>' +
-          '</div>';
-        });
-        this.searcher.siblings('.tags-label').remove()
-          .end().before(html.join(''));
-
-        this.ex = param;
+      if (this.options.multiple) {
       } else {
-        this.label.text(param.label).removeClass('ac-place');
+        this.labeler.text(param.label).removeClass('ac-place');
         this.element.val(param.value);
         this.ex = [{label: param.label, value: param.value}];
       }
       return this;
     },
 
-    hide: function () {
-      this.parent.addClass('hide');
-      return this;
-    },
-
-    show: function () {
-      this.parent.removeClass('hide');
-      return this;
-    },
-
     placeholder: function (ph) {
       this.options.placeholder = ph;
-      if (this.label.hasClass('ac-place')) {
-        this.label.text(ph);
+      if (this.labeler.hasClass('ac-place')) {
+        this.labeler.html(ph);
       }
       return this;
     },
 
-    // 空方法，防止外部调用不存在方法报错
-    noop: function () {}
+    noop: function () {
+      return this;
+    }
   };
 
   $.fn.autocomplete = function () {
-    var params = _slice.call(arguments, 0),
-        options = params[0],
-        data = this.data(namespace),
-        command = typeof options === 'string' ? options : null;
+    var params = _slice.call(arguments, 0);
+    var options = params[0];
+    var data = this.data(namespace);
+    var command = typeof options === 'string' ? options : 'noop';
 
     if (!data) {
       if (typeof options === 'string') {
-        options = config;
+        options = setting;
       } else {
-        options = $.extend(true, {}, config, options || {});
+        options = $.extend(true, {}, setting, options || {});
       }
       this.data(namespace, (data = new Autocomplete(this, options)));
+      acSet.push(data);
     }
-    return data[command || 'noop'].apply(data, params.slice(1));
+
+    return data[command].apply(data, params.slice(1));
   };
 
   $(document)
     .on('click.autocomplete-api', function () {
-      Autocomplete.prototype.hideDrop();
+      if (!$.HjxCtrl.getAC()) {
+        $.each(acSet, function (i, data) {
+          data.closeEdit();
+        });
+      }
+      $.HjxCtrl.clearAC();
     })
-    .on('click.autocomplete-api', '.autocomplete', function (e) {
+    .on('click.autocomplete-api', '.autocomplete-view', function (e) {
+      $.HjxCtrl.setAC();
+    })
+    .on('click.autocomplete-api', '.autocomplete-dropdown', function (e) {
       e.stopPropagation();
     });
 
-})(this);
+});

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Form-Validate</title>
+    <title>Autocomplete</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../lib/default.css" type="text/css" />
     <link rel="stylesheet" href="jquery.autocomplete.css" type="text/css" />
@@ -15,20 +15,17 @@
           'mysql', 'oracle', 'swift', 'object',
           'array', 'date', 'event'
         ];
-        // $('#run1').autocomplete({source: function (pattern, response) {
-        //   response(source);
-        // }, minlength: 0});
-        $('#run2').autocomplete({
-          source: source,
-          width: 350,
-          zIndex: 3,
-          dropdown: {
-            width: 350,
-            maxHeight: 200
-          },
-          minlength: 0,
-          multiple: true
-        });
+//        $('#run1').autocomplete({
+//          source: source,
+//          format: function (item) {
+//           return {
+//             label: item,
+//             value: item,
+//             ele: item
+//           };
+//          }
+//        });
+//        return;
         $('#run1').autocomplete({
           // source: source,
           source: function (pattern, response) {
@@ -37,20 +34,31 @@
             }, 500);
           },
           width: 200,
-          minlength: 0,
-          select: function (item) {
-            return item.label.indexOf('ja') > -1;
+          select: function (item, defer) {
+            defer.resolve(item);
           },
           render: function (item, pattern, highlight) {
             return highlight(item.label, pattern) + '<p>这是一段很长的文字描述</p>';
           }
         });
+
+        $('#run1').autocomplete('freeze');
+//        $('#run2').autocomplete({
+//          source: source,
+//          width: 350,
+//          zIndex: 3,
+//          dropdown: {
+//            width: 350,
+//            maxHeight: 200
+//          },
+//          multiple: true
+//        });
       });
     </script>
   </head>
   <body>
     <form action="#">
-    <div class="s">
+    <div class="s" style="margin-top: 200px;">
       <input type="hidden" id="run1" data-autocomplete="javascript" value="javascript"/>
     </div>
     <div class="s">
