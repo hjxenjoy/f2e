@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Numbers</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../lib/default.css" type="text/css" />
+    <link rel="stylesheet" href="jquery.number.css" type="text/css" />
+    <script type="text/javascript" src="../../lib/jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.number.js"></script>
+    <script type="text/javascript">
+      $(function () {
+        $('#number').number({
+          max: 59,
+          length: 2,
+          type: 1,
+          format: function (value) {
+            value = value * 1;
+            if (value < 10) {
+              value = '0' + value;
+            }
+            return value;
+          }
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <input type="text" id="number" readonly="readonly" />
+  </body>
+</html>
