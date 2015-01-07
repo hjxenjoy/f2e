@@ -5,8 +5,6 @@
 
   if (typeof define === 'function' && define.amd) {
     define(['jquery'], factory);
-  } else if (typeof exports === 'object') {
-    module.exports = factory();
   } else {
     factory(jQuery);
   }
@@ -14,20 +12,7 @@
 })(function($) {
   'use strict';
 
-  if (!$.HjxCtrl) {
-    $.HjxCtrl = {};
-  }
-  $.HjxCtrl.autocomplete = false;
-
-  $.HjxCtrl.setAC = function () {
-    $.HjxCtrl.autocomplete = true;
-  };
-  $.HjxCtrl.clearAC = function () {
-    $.HjxCtrl.autocomplete = false;
-  };
-  $.HjxCtrl.getAC = function () {
-    return $.HjxCtrl.autocomplete;
-  };
+  var inac = false;
 
   var namespace = 'autocomplete-api';
   var times = 500;
@@ -607,15 +592,15 @@
 
   $(document)
     .on('click.autocomplete-api', function () {
-      if (!$.HjxCtrl.getAC()) {
+      if (!inac) {
         $.each(acSet, function (i, data) {
           data.closeEdit();
         });
       }
-      $.HjxCtrl.clearAC();
+      inac = false;
     })
     .on('click.autocomplete-api', '.autocomplete-view', function (e) {
-      $.HjxCtrl.setAC();
+      inac = true;
     })
     .on('click.autocomplete-api', '.autocomplete-dropdown', function (e) {
       e.stopPropagation();

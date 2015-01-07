@@ -15,7 +15,7 @@
           active: true,
           closable: false,
           storage: false,
-          enable: [d, new Date(2014, 10, 22)],
+//          enable: [d, new Date(2014, 10, 22)],
           after: function (year, month, list) {
             // console.log(year, month);
             $.each(list, function (i, item) {
@@ -28,9 +28,9 @@
 
         // //
         $('#t2').calendar({
-          size: 6,
           time: true,
           enable: [undefined, new Date],
+          format: 'dd/MM/yyyy hh:mm',
           todayBtn: true,
           clearBtn: true
         });

@@ -5,8 +5,6 @@
 
   if (typeof define === 'function' && define.amd) {
     define(['jquery'], factory);
-  } else if (typeof exports === 'object') {
-    module.exports = factory();
   } else {
     factory(jQuery);
   }
@@ -14,19 +12,19 @@
 })(function($) {
   'use strict';
 
-  if (!$.HjxCtrl) {
-    $.HjxCtrl = {};
+  if (!$._hjx) {
+    $._hjx = {};
   }
-  $.HjxCtrl.number = false;
+  $._hjx.number = false;
 
-  $.HjxCtrl.setNumbers = function () {
-    $.HjxCtrl.number = true;
+  $._hjx.setNumbers = function () {
+    $._hjx.number = true;
   };
-  $.HjxCtrl.clearNumbers = function () {
-    $.HjxCtrl.number = false;
+  $._hjx.clearNumbers = function () {
+    $._hjx.number = false;
   };
-  $.HjxCtrl.getNumbers = function () {
-    return $.HjxCtrl.number;
+  $._hjx.getNumbers = function () {
+    return $._hjx.number;
   };
 
   var _slice = Array.prototype.slice;
@@ -229,7 +227,7 @@
           Numbers.ui.change(that);
           Numbers.ui.open();
         }
-        $.HjxCtrl.setNumbers();
+        $._hjx.setNumbers();
       });
     },
     noop: function () {
@@ -266,10 +264,10 @@
   };
 
   $(document).on('click.number-api', function () {
-    if (!$.HjxCtrl.getNumbers()) {
+    if (!$._hjx.getNumbers()) {
       Numbers.ui.close();
     }
-    $.HjxCtrl.clearNumbers();
+    $._hjx.clearNumbers();
   });
 
 });
