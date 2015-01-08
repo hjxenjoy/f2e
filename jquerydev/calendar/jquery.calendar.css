@@ -128,6 +128,14 @@
 .calendar-top .calendar-right:hover span {
   border-left-color: #666;
 }
+.calendar-top .calendar-prev-disable span,
+.calendar-top .calendar-prev-disable:hover span {
+  border-right-color: #eee;
+}
+.calendar-top .calendar-next-disable span,
+.calendar-top .calendar-next-disable:hover span {
+  border-left-color: #eee;
+}
 .calendar-top .calendar-text {
   height: 30px;
   line-height: 30px;
@@ -168,6 +176,11 @@
   color: #77A37D;
   cursor: default;
 }
+.calendar-body .calendar-cell-ignore:hover {
+  background-color: #fff;
+  color: #aaa;
+  cursor: text;
+}
 .calendar-body .calendar-month li.calendar-cell-today {
   text-decoration: underline;
   font-size: 14px;
@@ -202,13 +215,44 @@
   *zoom: 1;
 }
 .calendar-foot .calendar-time {
-  float: left;
   margin: 3px 0;
-  width: 120px;
-  padding-left: 15px;
+  line-height: 22px;
+  *zoom: 1;
 }
+.calendar-foot .calendar-time:before,
+.calendar-foot .calendar-time:after {
+  display: table;
+  content: "";
+  line-height: 0;
+}
+.calendar-foot .calendar-time:after {
+  clear: both;
+}
+.calendar-foot .calendar-time .calendar-time-edit-helper {
+  color: #0088aa;
+  border-bottom: 1px solid #0088aa;
+  cursor: help;
+  font-size: 12px;
+}
+.calendar-foot .calendar-time .calendar-time-edit-helper span {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  bottom: 60px;
+  left: 10px;
+  width: 210px;
+  padding: 0 3px;
+  line-height: 20px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  color: #0088aa;
+  text-align: left;
+}
+.calendar-foot .calendar-time .calendar-time-edit-helper:hover span {
+  display: block;
+}
+
 .calendar-foot .calendar-time .calendar-time-box {
-  position: relative;
   float: left;
   width: 40px;
 }
@@ -223,15 +267,22 @@
   line-height: 20px;
   cursor: text;
 }
+.calendar-foot .calendar-time input[type="text"].calendar-time-focus {
+  background-color: #ddd;
+}
 .calendar-foot .calendar-time input[type="text"]:focus {
   outline: 0 none;
+}
+.calendar-foot .calendar-time input[type="text"]::selection {
+  background-color: transparent;
 }
 .calendar-foot .calendar-time span {
   line-height: 20px;
 }
 .calendar-foot .calendar-btn {
-  float: left;
-  display: block;
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
   margin: 3px 3px 3px 0;
   height: 14px;
   line-height: 14px;
@@ -240,8 +291,34 @@
   background: #F0F0F0;
   border: 1px solid #CCC;
   border-radius: 3px;
+  text-align: center;
   cursor: pointer;
 }
 .calendar-foot .calendar-btn:hover {
   background: #ddd;
+}
+.calendar-foot {
+  text-align: center;
+}
+.calendar-foot.calendar-btn-count-2 .calendar-btn {
+  margin: 3px 0;
+  letter-spacing: 2px;
+  width: 90px;
+}
+.calendar-foot.calendar-btn-count-1 .calendar-btn {
+  margin: 3px 0;
+  letter-spacing: 2px;
+  width: 210px;
+}
+.calendar-foot.calendar-btn-count-0 .calendar-time .calendar-time-edit-helper span {
+  bottom: 35px;
+}
+.calendar-foot.calendar-btn-count-2 .calendar-btn.calendar-today {
+  margin-right: 3px;
+}
+.calendar-foot.calendar-btn-count-0 .calendar-time .calendar-time-edit-helper span {
+  bottom: 35px;
+}
+.calendar-foot.calendar-btn-count-2 .calendar-btn.calendar-today {
+  margin-right: 3px;
 }

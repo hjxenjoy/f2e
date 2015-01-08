@@ -1,3 +1,28 @@
+//  
+//                                  _oo8oo_
+//                                 o8888888o
+//                                 88" . "88
+//                                 (| -_- |)
+//                                 0\  =  /0
+//                               ___/'==='\___
+//                             .' \\|     |// '.
+//                            / \\|||  :  |||// \
+//                           / _||||| -:- |||||_ \
+//                          |   | \\\  -  /// |   |
+//                          | \_|  ''\---/''  |_/ |
+//                          \  .-\__  '-'  __/-.  /
+//                        ___'. .'  /--.--\  '. .'___
+//                     ."" '<  '.___\_<|>_/___.'  >' "".
+//                    | | :  `- \`.:`\ _ /`:.`/ -`  : | |
+//                    \  \ `-.   \_ __\ /__ _/   .-` /  /
+//                =====`-.____`.___ \_____/ ___.`____.-`=====
+//                                  `=---=`
+//  
+//  
+//               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// 
+//                          佛祖保佑         永无bug
+//                          
 /**
  * 基于jQuery的日期插件
  * @base jquery@v1.8.3 & jquery.mousewheel@v3.1.2
@@ -26,6 +51,7 @@
   var dataDateTemp = 'yyyyMMdd';
   var weekText = '日 一 二 三 四 五 六';
   var monthText = '一月 二月 三月 四月 五月 六月 七月 八月 九月 十月 十一月 十二月';
+  var timeTip = ['如何修改时间', '点击下方时间框，使用键盘上下方向键调整时间'];
   var config = {
       style          : null,         // 主题类型
       size           : 0,            // 赋值格式(年，月，日，时，分，秒)的前几位
@@ -40,6 +66,7 @@
       monthText      : monthText,
       timeText       : '时分秒',
       time           : false,        // 是否显示时间编辑视窗
+      timeTip        : timeTip,      // 时间编辑提示器
       todayBtn       : false,        // 是否显示今天按钮
       todayText      : '今天',
       clearBtn       : false,        // 是否显示清除按钮,
@@ -47,6 +74,7 @@
       sureText       : '确定',
 
       clear          : null,         // 清除方法
+      change         : null,         // 值变化后方法
       after          : null,         // 生成月试图之后，对每日做特殊处理
       dateClick      : null,         // 日期点击事件
       dateMouseover  : null,         // 日期鼠标悬停
@@ -129,12 +157,7 @@
       var secondIndex = format.indexOf('ss');
       var length = target.length + 1;
 
-      var year = 1970;
-      var month = 0;
-      var date = 1;
-      var hour = 0;
-      var minute = 0;
-      var second = 0;
+      var year = 1970, month = 0, date = 1, hour = 0, minute = 0, second = 0;
 
       if (yearIndex > -1 && length > yearIndex + 4) {
         year = target.substr(yearIndex, 4) - 0;
@@ -233,24 +256,28 @@
      */
     isTextElement: function (el) {
       return (el && el.nodeName && el.nodeName === 'INPUT' && el.type === 'text');
+    },
+
+    /**
+     * 计算当前年所在的10年范围
+     * @param year
+     * @returns {string}
+     */
+    tenScope: function (year) {
+      var s = Math.floor(year / 10);
+      return s + '0' + '-' + s + '9';
+    },
+
+    /**
+     * 计算当前年所在的100年范围
+     * @param year
+     * @returns {string}
+     */
+    centuryScope: function (year) {
+      var s = Math.floor(year / 100);
+      return s + '00' + '-' + s + '99';
     }
   };
-
-  /**
-   * 计算当前年所在的10年范围
-   */
-  function tenScope(year) {
-    var s = Math.floor(year/10);
-    return s + '0' + '-' + s + '9';
-  }
-
-  /**
-   * 计算当前年所在的100年范围
-   */
-  function centuryScope(year) {
-    var s = Math.floor(year/100);
-    return s + '00' + '-' + s + '99';
-  }
 
   /**
    * 日期封装类
@@ -387,7 +414,6 @@
       // 判断触发元素是否为input:text
       // 是：日历插入body根元素
       // 否：日历插入触发元素内
-
       this.isText = Utils.isTextElement(this.element);
 
       // 初始化视图月份
@@ -400,9 +426,7 @@
         this.calendar = new Calendar(this.options.date || new Date);
       }
 
-      if (this.options.time &&
-        ((this.isText && this.calendar) ||
-        (this.options.hasSiblings && this.options.pairTarget.val()))) {
+      if (this.options.time && this.isText && this.calendar) {
         var datestr = this.calendar.toStr(dateTemplate, 6).match(/\d/g).join('');
         // 已经设定的时分秒
         this.hms = datestr.substring(8);
@@ -418,12 +442,13 @@
 
     // 生成html
     wrap: function () {
-      var id = Utils.random('calendar'),
-      h = [
+      var id = Utils.random('calendar');
+      var btnCount = !!this.options.todayBtn + !!this.options.clearBtn;
+      var h = [
         '<div class="calendar" id="' + id + '">',
         ' <div class="calendar-top"></div>',
         ' <div class="calendar-body"></div>',
-        ' <div class="calendar-foot"></div>',
+        ' <div class="calendar-foot calendar-btn-count-' + btnCount + '"></div>',
         '</div>'
       ];
 
@@ -446,16 +471,16 @@
         this.$wrap.addClass('calendar-theme-' + this.options.style);
       }
 
+      if (this.options.time) {
+        this.addTime();
+      }
+
       if (this.options.todayBtn) {
         this.addToday();
       }
 
       if (this.options.clearBtn) {
         this.addClear();
-      }
-
-      if (this.options.time) {
-        this.addTime();
       }
 
       // 自动打开，添加打开状态样式
@@ -484,6 +509,9 @@
         this.getTimeText(this.hms ? this.hms.substr(4, 2) : '00', 'second'),
         '  <span>' + this.options.timeText.charAt(2) + '</span>',
         ' </div>',
+        ' <span class="calendar-time-edit-helper">',
+        this.options.timeTip[0],
+        '<span>' + this.options.timeTip[1] + '</span></span>',
         '</div>'
       ];
       this.$foot.append(html.join(''));
@@ -508,19 +536,21 @@
         maxTime = max.substring(8);
       }
 
-      timeBox.off('mouseover.focus-time').off('keydown.control-time').off('click.focus-time');
+      timeBox.off('mouseover.focus-time').off('keydown.control-time')
+        .off('click.focus-time').off('mouseout.blur-time');
       timeBox
         .on('click.focus-time', function () {
           this.focus();
-          this.select();
         })
         .on('mouseover.focus-time', function () {
           this.focus();
-          this.select();
+          $(this).addClass('calendar-time-focus');
+        })
+        .on('mouseout.blur-time', function () {
+          $(this).removeClass('calendar-time-focus');
         })
         .on('keydown.control-time', function (e) {
           this.focus();
-          this.select();
           if (e.keyCode === 38) { // up
             e.preventDefault();
             that.addTimes(this, this.className, maxDate, maxTime);
@@ -541,21 +571,21 @@
 
       var hour, minute, second;
       // control hour
-      if (className === 'calendar-hour') {
+      if (className.indexOf('calendar-hour') > -1) {
         if (v < 23) {
           if (isToday && maxTime.substr(0, 2) - v <= 0) {
             return false;
           }
           input.value = Utils.lenNum(v + 1);
         }
-      } else if (className === 'calendar-minute')  {
+      } else if (className.indexOf('calendar-minute') > -1)  {
         if (isToday && maxTime.substr(2, 2) - v <= 0) {
           return false;
         }
         if (v < 59) {
           input.value = Utils.lenNum(v + 1);
         }
-      } else if (className === 'calendar-second') {
+      } else if (className.indexOf('calendar-second') > -1) {
         if (isToday && maxTime.substr(4, 2) - v <= 0) {
           return false;
         }
@@ -565,8 +595,6 @@
       }
 
       if (this.isText && this.$element.val() && this.ymd) {
-        this.set(Utils.toDate(this.ymd, dataDateTemp));
-      } else if (this.options.hasSiblings && this.options.pairTarget.val() && this.ymd) {
         this.set(Utils.toDate(this.ymd, dataDateTemp));
       }
     },
@@ -580,21 +608,21 @@
 
       var v = input.value - 0;
       // control hour
-      if (className === 'calendar-hour') {
+      if (className.indexOf('calendar-hour') > -1) {
         if (v > 0) {
           if (isToday && minTime.substr(0, 2) - v >= 0) {
             return false;
           }
           input.value = Utils.lenNum(v - 1);
         }
-      } else if (className === 'calendar-minute')  {
+      } else if (className.indexOf('calendar-minute') > -1)  {
         if (isToday && minTime.substr(2, 2) - v >= 0) {
           return false;
         }
         if (v > 0) {
           input.value = Utils.lenNum(v - 1);
         }
-      } else if (className === 'calendar-second')  {
+      } else if (className.indexOf('calendar-second') > -1)  {
         if (isToday && minTime.substr(4, 2) - v >= 0) {
           return false;
         }
@@ -604,8 +632,6 @@
       }
 
       if (this.isText && this.$element.val() && this.ymd) {
-        this.set(Utils.toDate(this.ymd, dataDateTemp));
-      } else if (this.options.hasSiblings && this.options.pairTarget.val() && this.ymd) {
         this.set(Utils.toDate(this.ymd, dataDateTemp));
       }
     },
@@ -643,11 +669,19 @@
       });
 
       this.$top
+        // 显示上一个同级视图
         .on('click.show-prev', '.calendar-left', function () {
+          if ($(this).hasClass('calendar-prev-disable')) {
+            return false;
+          }
           that.viewCalendar = that.viewCalendar.prev(that.viewMode);
           that.change();
         })
+        // 显示下一个同级视图
         .on('click.show-next', '.calendar-right', function () {
+          if ($(this).hasClass('calendar-next-disable')) {
+            return false;
+          }
           that.viewCalendar = that.viewCalendar.next(that.viewMode);
           that.change();
         })
@@ -657,18 +691,34 @@
 
       this.$body
         .on('click.show-month', '.calendar-cell-month', function () {
-          that.viewMode = viewMode.month;
+          var $this = $(this);
+          if ($this.hasClass('calendar-cell-ignore')) {
+            return false;
+          }
           var date = new Date(that.viewCalendar.year, $(this).data('month'), 1);
+          if (that.options.size === 2) {
+            that.dateClick(date, $this);
+            return false;
+          }
+          that.viewMode = viewMode.month;
           that.viewCalendar = new Calendar(date);
           that.change();
         })
         .on('click.show-year', '.calendar-cell-year', function () {
+          var $this = $(this);
+          if ($this.hasClass('calendar-cell-ignore')) {
+            return false;
+          }
           that.viewMode = viewMode.year;
           var date = new Date($(this).data('year'), 0, 1);
           that.viewCalendar = new Calendar(date);
           that.change();
         })
         .on('click.show-ten', '.calendar-cell-ten', function () {
+          var $this = $(this);
+          if ($this.hasClass('calendar-cell-ignore')) {
+            return false;
+          }
           that.viewMode = viewMode.ten;
           var date = new Date($(this).data('ten'), 0, 1);
           that.viewCalendar = new Calendar(date);
@@ -727,21 +777,12 @@
 
     // 切换到父视图
     parent: function () {
-      switch(this.viewMode) {
-      case viewMode.month:
-        this.viewMode = viewMode.year;
-        this.change();
-        break;
-      case viewMode.year:
-        this.viewMode = viewMode.ten;
-        this.change();
-        break;
-      case viewMode.ten:
-        this.viewMode = viewMode.century;
-        this.change();
-        break;
-      case viewMode.century:
-        break;
+      if (this.viewMode === viewMode.month) {
+        this.year();
+      } else if (this.viewMode === viewMode.year) {
+        this.tenYears();
+      } else if (this.viewMode === viewMode.ten) {
+        this.century();
       }
     },
 
@@ -750,26 +791,31 @@
      */
     top: function () {
       var viewText = this.viewCalendar.toStr('yyyy-MM', 2);
-      switch(this.viewMode) {
-      case viewMode.month:
-        break;
-      case viewMode.year:
+      if (this.viewMode === viewMode.year) {
         viewText = this.viewCalendar.year;
-        break;
-      case viewMode.ten:
-        viewText = tenScope(this.viewCalendar.year);
-        break;
-      case viewMode.century:
-        viewText = centuryScope(this.viewCalendar.year);
-        break;
+      } else if (this.viewMode === viewMode.ten) {
+        viewText = Utils.tenScope(this.viewCalendar.year);
+      } else if (this.viewMode === viewMode.century) {
+        viewText = Utils.centuryScope(this.viewCalendar.year);
+      }
+
+      var year = this.viewCalendar.year - 0;
+      var leftcls = year <= 1000 ? ' calendar-prev-disable' : '';
+      var rightcls = year >= 9999 ? ' calendar-next-disable' : '';
+
+      // 月视图下最小、最大年只有临界月份不可点
+      if (year === 1000 && this.viewMode === viewMode.month && this.viewCalendar.month > 1) {
+        leftcls = '';
+      } else if (year === 9999 && this.viewMode === viewMode.month && this.viewCalendar.month < 12) {
+        rightcls = '';
       }
 
       var h = [
-        '<span class="calendar-left">',
+        '<span class="calendar-left' + leftcls + '">',
         '<span></span><em></em>',
         '</span>',
         '<div class="calendar-text">' + viewText + '</div>',
-        '<span class="calendar-right">',
+        '<span class="calendar-right' + rightcls + '">',
         '<span></span><em></em>',
         '</span>'
       ];
@@ -878,10 +924,18 @@
 
     // 生成年的月份视图
     year: function () {
+      this.viewMode = viewMode.year;
       this.top();
-      var c = 'calendar-cell-month',
-        h = $.map(this.options.monthText.split(/\s+/), function (m, i) {
-        return '<div class="' + c + '" data-month="' + i + '">' + m + '</div>';
+      var minDate = this.minDate ? Utils.formatDate(this.minDate, 'yyyyMM') : 0;
+      var maxDate = this.maxDate ? Utils.formatDate(this.maxDate, 'yyyyMM') : 1000000;
+      var year = this.viewCalendar.year;
+      var h = $.map(this.options.monthText.split(/\s+/), function (m, i) {
+        var cls = 'calendar-cell-month';
+        var ym = year + '' + Utils.lenNum(i + 1);
+        if (ym < minDate || ym > maxDate) {
+          cls += ' calendar-cell-ignore';
+        }
+        return '<div class="' + cls + '" data-month="' + i + '">' + m + '</div>';
       });
       this.$body.html(h.join(''));
     },
@@ -890,19 +944,25 @@
      * 生成10年的视图
      */
     tenYears: function () {
-      var decade = Math.floor(this.viewCalendar.year/10);
+      this.viewMode = viewMode.ten;
       this.top();
-      var startYear = ('' + decade + 0) - 1,
-        h = [], i = 0, len = 12, c, d;
+      var minYear = this.minDate ? this.minDate.getFullYear() : 0;
+      var maxYear = this.maxDate ? this.maxDate.getFullYear() : 10000;
+      var decade = Math.floor(this.viewCalendar.year/10); // 201(0)
+      var startYear = ('' + decade + 0) - 1; // 2009
+      var h = [], i = 0, len = 12, c, d;
       for (; i < len; i++) {
         c = 'calendar-cell-year';
         d = startYear + i;
-        if (i === 0 || i === 11) {
+        if (i === 0 || i === 11 || d < minYear || d > maxYear) {
           c += ' calendar-cell-ignore';
         }
-        h.push('<div class="' + c + '" data-year="' + d + '">' + d + '</div>');
+        if (d < 1000 || d > 9999) {
+          h.push('<div class="' + c + '"></div>')
+        } else {
+          h.push('<div class="' + c + '" data-year="' + d + '">' + d + '</div>');
+        }
       }
-
       this.$body.html(h.join(''));
     },
 
@@ -910,19 +970,25 @@
      * 生成100年的世纪视图
      */
     century: function () {
-      var cen = Math.floor(this.viewCalendar.year/100);
+      this.viewMode = viewMode.century;
       this.top();
-      var startYear = ('' + cen + '00') - 10,
-        h = [], i = 0, len = 12, c, s, ten;
+      var minYear = this.minDate ? this.minDate.getFullYear() : 0;
+      var maxYear = this.maxDate ? this.maxDate.getFullYear() : 10000;
+      var cen = Math.floor(this.viewCalendar.year/100);
+      var startYear = ('' + cen + '00') - 10;
+      var h = [], i = 0, len = 12, c, s, ten;
       for (; i < len; i++) {
         c = 'calendar-cell-ten';
-        if (i === 0 || i === 11) {
+        s = (startYear + i * 10);
+        if (i === 0 || i === 11 || s < minYear || s > maxYear) {
           c += ' calendar-cell-ignore';
         }
-        s = (startYear + i * 10);
-        ten = '<p>' + s + '-</p><p>' +
-          (s + 9) + '</p>';
-        h.push('<div class="' + c + '" data-ten="' + s + '">' + ten + '</div>');
+        ten = '<p>' + s + '-</p><p>' + (s + 9) + '</p>';
+        if (s < 1000 || s > 9999) {
+          h.push('<div class="' + c + '"></div>')
+        } else {
+          h.push('<div class="' + c + '" data-ten="' + s + '">' + ten + '</div>');
+        }
       }
       this.$body.html(h.join(''));
     },
@@ -981,8 +1047,8 @@
         return this;
       }
 
-      var viewDate = this.viewCalendar.d,
-        viewErrors = this.getErrors(viewDate);
+      var viewDate = this.viewCalendar.d;
+      var viewErrors = this.getErrors(viewDate);
 
       // 视图日期比最小日期早
       if (viewErrors[0] < 0) {
@@ -1005,9 +1071,6 @@
 
       if (this.isText) {
         this.element.value = '';
-      }
-      if (this.options.hasSiblings) {
-        this.options.pairTarget.val('');
       }
 
       if (this.$wrap.hasClass('open')) {
@@ -1059,11 +1122,6 @@
       if (this.isText) {
         this.element.value = Utils.date2Str(date, this.options.format, this.options.size);
       }
-      // 双日历
-      if (this.options.hasSiblings) {
-        this.options.pairTarget.val(Utils.date2Str(date, this.options.format, this.options.size));
-        this.options.enable(date);
-      }
 
       // 当前日期如果是显示状态，添加选择样式
       if (this.$wrap.hasClass('open')) {
@@ -1077,6 +1135,8 @@
           }
         });
       }
+
+      (this.options.change || function () {})(date);
       return this;
     },
 
@@ -1089,7 +1149,7 @@
       }
       // 当前视图月份默认为插件指定或文本值
       this.viewCalendar = new Calendar(currentDate);
-      this.viewMode = viewMode.month;
+      this.viewMode = this.options.size === 2 ? viewMode.year : viewMode.month;
 
       var errors = this.getErrors(currentDate),
         moreThanMin = errors[0] > -1,
@@ -1114,7 +1174,11 @@
       if (!lessThanMax) {
         this.viewCalendar = new Calendar(this.maxDate);
       }
-      this.month();
+      if (this.viewMode === viewMode.month) {
+        this.month();
+      } else if (this.viewMode === viewMode.year) {
+        this.year();
+      }
       return this;
     },
 
@@ -1161,171 +1225,58 @@
     if (option.touchable == undefined) {
       this.touchable = true;
     }
-    this.options.hasSiblings = true;
     this.init();
   }
   CalendarPair.prototype = {
     constructor: CalendarPair,
     init: function () {
-      var that = this;
-      // 生成双日历插件外部
-      var id = Utils.random('calendarPair'),
-        h = [
-          '<div class="calendar-pair" id="' + id + '">',
-          ' <div class="calendar-start"></div>',
-          ' <div class="calendar-end"></div>',
-          ' <div class="calendar-btn calendar-sure">',
-            this.options.sureText +
-          '</div>',
-          '</div>'
-        ];
+      var start = this.options.start;
+      var end = this.options.end;
 
-      $('body').append(h.join(''));
-
-      var parent = $('#' + id);
-      var sd = this.element.start.val();
-      var ed = this.element.end.val();
       var enable = this.options.enable;
-      // 日历触发对象
-      var start = parent.find('.calendar-start');
-      var end = parent.find('.calendar-end');
-
+      var touchable = this.touchable;
       var scope = this.options.scope;
-      var format = this.options.format;
 
-      // 初始化日期
-      var startDate = sd ? Utils.toDate(sd, format) : undefined;
-      var endDate = ed ? Utils.toDate(ed, format) : undefined;
-
-      // 起始日期插件参数
-      // 2014-10-21修改，增加深拷贝，否则enable属性会被共享
       var startOption = $.extend(true, {}, this.options, {
-          date: startDate,
-          active: true,
-          closable: false,
-          pairTarget: that.element.start,
-          // 2014-10-21修改，区间日期没有自动添加选中样式
-          after: function (year, month, dateList) {
-            var selDate = that.element.start.val();
-            if (selDate) {
-              selDate = Utils.toDate(selDate, format);
-              $.each(dateList, function (i, item) {
-                if (Utils.compareDate(item.date, selDate, 3) === 0) {
-                  item.target.addClass('calendar-cell-selected');
-                }
-              });
-            }
-          },
-          clear: function () {
-            // 重置结束日期的最小值
-            end.calendar('enable', true, enable[0], enable[1]);
-          },
-          dateClick: function (date) {
-            start.calendar('set', date);
-          },
-          enable: function (date) {
-            var maxDate = enable[1];
-            if ($.isFunction(scope)) {
-              maxDate = scope(new Date(date))[1];
-            }
-            if (!that.touchable) {
-              date.setDate(date.getDate() + 1);
-            }
-            end.calendar('enable', date, maxDate);
+        clearBtn: true,
+        change: function (date) {
+          var maxDate = enable[1];
+          if (typeof scope === 'function') {
+            maxDate = scope(new Date(date))[1];
           }
-        });
-      // 结束日期插件参数
-      var endOption = $.extend(true, {}, this.options, {
-          date: endDate,
-          active: true,
-          closable: false,
-          pairTarget: that.element.end,
-          after: function (year, month, dateList) {
-            var selDate = that.element.end.val();
-            if (selDate) {
-              selDate = Utils.toDate(selDate, format);
-              $.each(dateList, function (i, item) {
-                if (Utils.compareDate(item.date, selDate, 3) === 0) {
-                  item.target.addClass('calendar-cell-selected');
-                }
-              });
-            }
-          },
-          clear: function () {
-            // 重置开始日期的最大值
-            start.calendar('enable', true, enable[0], enable[1]);
-          },
-          dateClick: function (date) {
-            end.calendar('set', date);
-          },
-          enable: function (date) {
-            var minDate = enable[0];
-            if ($.isFunction(scope)) {
-              minDate = scope(new Date(date))[0];
-            }
-            if (!that.touchable) {
-              date.setDate(date.getDate() - 1);
-            }
-            start.calendar('enable', minDate, date);
-          }
-        });
 
-      if (sd) {
-        endOption.enable[0] = Utils.toDate(sd, format);
-      }
-      if (ed) {
-        startOption.enable[1] = Utils.toDate(ed, format);
-      }
-      // 插件调用
+          // 起始值为结束值的最小值
+          if (!touchable) {
+            date.setDate(date.getDate() + 1);
+          }
+
+          end.calendar().enable(true, date, maxDate);
+        },
+        clear: function () {
+          // 重置结束日期的最小值限定
+          end.calendar().enable(true, enable[0], enable[1]);
+        }
+      });
+
+      var endOption = $.extend(true, {}, this.options, {
+        clearBtn: true,
+        change: function (date) {
+          var minDate = enable[0];
+          if (typeof scope === 'function') {
+            minDate = scope(new Date(date))[0];
+          }
+          if (!touchable) {
+            date.setDate(date.getDate() - 1);
+          }
+          start.calendar().enable(true, minDate, date);
+        },
+        clear: function () {
+          start.calendar().enable(true, enable[0], enable[1]);
+        }
+      });
+
       start.calendar(startOption);
       end.calendar(endOption);
-
-      // 添加清除按钮
-      var cb = '<div class="calendar-btn calendar-clear">'
-        + this.options.clearText + '</div>';
-      start.append(cb);
-      end.append(cb);
-
-      // 事件监听
-      parent.on('click.stop-close-calendar', function (e) {
-        e.stopPropagation();
-      });
-
-      parent.find('.calendar-sure')
-        .on('click.close-calendar-pair', function () {
-          parent.removeClass('open');
-        });
-
-      this.element.start.on('click.toggle-calendar-pair', function () {
-        if (parent.hasClass('open')) {
-          closeCalendar();
-        } else {
-          closeCalendar();
-          parent.addClass('open');
-          setPosition($(this), parent, that.options.zIndex);
-        }
-        incal = true;
-      });
-
-      this.element.end.on('click.toggle-calendar-pair', function () {
-        if (parent.hasClass('open')) {
-          closeCalendar();
-        } else {
-          closeCalendar();
-          parent.addClass('open');
-          setPosition($(this), parent, that.options.zIndex);
-        }
-        incal = true;
-      });
-
-      start.find('.calendar-clear')
-        .on('click.calendar-clear', function () {
-          start.calendar('clear');
-        });
-      end.find('.calendar-clear')
-        .on('click.calendar-clear', function () {
-          end.calendar('clear');
-        });
     }
   };
 
@@ -1334,17 +1285,11 @@
   };
 
   function closeCalendar() {
-    // 关闭closable=true的日历
     $('.calendar-closable.open').removeClass('open');
-    // 关闭双日历
-    $('.calendar-pair').removeClass('open');
   }
 
   $(document)
     .on('click.calendar-api', function () {
-      if (!incal) {
-        closeCalendar();
-      }
-      incal = false;
+      incal ? (incal = false) : closeCalendar();
     });
 });

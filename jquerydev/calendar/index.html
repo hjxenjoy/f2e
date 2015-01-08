@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="../../lib/default.css" type="text/css" />
     <link rel="stylesheet" href="jquery.calendar.css" type="text/css" />
     <script type="text/javascript" src="../../lib/jquery.min.js"></script>
-    <script type="text/javascript" src="jquery.mousewheel.js"></script>
     <script type="text/javascript" src="jquery.calendar.js"></script>
     <script type="text/javascript">
       $(function () {
@@ -15,9 +14,8 @@
           active: true,
           closable: false,
           storage: false,
-//          enable: [d, new Date(2014, 10, 22)],
+          enable: [d, new Date(2014, 10, 22)],
           after: function (year, month, list) {
-            // console.log(year, month);
             $.each(list, function (i, item) {
               if (item.date.getDate() % 6 === 1) {
                 item.target.addClass('my-class');
@@ -26,27 +24,26 @@
           }
         });
 
-        // //
         $('#t2').calendar({
           time: true,
-          enable: [undefined, new Date],
-          format: 'dd/MM/yyyy hh:mm',
-          todayBtn: true,
+//          todayBtn: true,
           clearBtn: true
         });
-        $('#t3').calendar();
+        $('#t3').calendar({
+          time: true,
+          format: 'yyyy/MM/dd hh mm ss'
+        });
 
         $.calendarPair({
           start: $('.start-date'),
           end: $('.end-date'),
-          enable: [],
+//          enable: [new Date, undefined],
           size: 6,
-          time: true
-//          scope: function (date) {
-//            var year = date.getFullYear();
-//            return [new Date(year, 0, 1), new Date(year, 11, 31)];
-//          }
-          // enable: [new Date(2014, 9, 4), new Date(2014, 9, 29)]
+          time: true,
+          scope: function (date) {
+            var year = date.getFullYear();
+            return [new Date(year, 0, 1), new Date(year, 5, 30)];
+          }
         });
       });
     </script>
@@ -54,17 +51,16 @@
   <body>
     <div class="s1" id="t1"></div>
 
-    <div class="s1" id="s1">
+    <div class="s1" id="s1" style="">
       <input class="date-mini start-date" type="text" readonly="readonly"/>
       <input class="date-mini end-date" type="text" readonly="readonly" />
     </div>
 
     <div class="s1">
-      <input class="date" type="text" id="t2" readonly="readonly"/>
+      <input class="date" type="text" id="t2" readonly="readonly" value="9999-12-01"/>
     </div>
-    <div class="s1" style="margin-top: 900px;margin-bottom: 900px;">
-      <input class="date" type="text" id="t3" readonly="readonly"/>
+    <div class="s1">
+      <input class="date" type="text" id="t3" readonly="readonly" />
     </div>
-
   </body>
 </html>
