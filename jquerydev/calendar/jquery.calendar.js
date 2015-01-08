@@ -25,10 +25,10 @@
 //                          
 /**
  * 基于jQuery的日期插件
- * @base jquery@v1.8.3 & jquery.mousewheel@v3.1.2
+ * @base jquery@v1.8.3
  * @author hjxenjoy@foxmail.com
  * @url https://github.com/hjxenjoy/f2e/issues/2
- * @date 2014-12-17
+ * @date 2015-01-08
  */
 ;(function(factory) {
 
