@@ -516,15 +516,15 @@
       ];
       this.$foot.append(html.join(''));
 
+      this.timeBox = this.$foot.find('input[type="text"]');
       this.listenTimes();
     },
 
     listenTimes: function () {
       var that = this;
       var min, max;
-      var minTime = '000000', minDate = 0, maxDate = 0, maxTime = '000000';
+      var minTime = '000000', minDate = 0, maxDate = 0, maxTime = '235959';
 
-      var timeBox = this.$foot.find('input[type="text"]');
       if (this.minDate) {
         min = Utils.fullDate(this.minDate);
         minDate = min.substr(0, 8);
@@ -536,9 +536,9 @@
         maxTime = max.substring(8);
       }
 
-      timeBox.off('mouseover.focus-time').off('keydown.control-time')
+      this.timeBox.off('mouseover.focus-time').off('keydown.control-time')
         .off('click.focus-time').off('mouseout.blur-time');
-      timeBox
+      this.timeBox
         .on('click.focus-time', function () {
           this.focus();
         })
@@ -567,32 +567,24 @@
       if (isToday && this.hms - maxTime > 0) {
         return false;
       }
-      var v = input.value - 0;
+      var temp = $.map(this.timeBox, function (el) {
+        return el.value;
+      });
+      // 配合set方法，可以实现秒钟累加成分钟，分钟累加成时钟
+      var v = Utils.lenNum(input.value - 0 + 1);
 
-      var hour, minute, second;
-      // control hour
       if (className.indexOf('calendar-hour') > -1) {
-        if (v < 23) {
-          if (isToday && maxTime.substr(0, 2) - v <= 0) {
-            return false;
-          }
-          input.value = Utils.lenNum(v + 1);
-        }
+        temp[0] = v;
       } else if (className.indexOf('calendar-minute') > -1)  {
-        if (isToday && maxTime.substr(2, 2) - v <= 0) {
-          return false;
-        }
-        if (v < 59) {
-          input.value = Utils.lenNum(v + 1);
-        }
+        temp[1] = v;
       } else if (className.indexOf('calendar-second') > -1) {
-        if (isToday && maxTime.substr(4, 2) - v <= 0) {
-          return false;
-        }
-        if (v < 59) {
-          input.value = Utils.lenNum(v + 1);
-        }
+        temp[2] = v;
       }
+
+      if (temp.join('') > maxTime) {
+        return false;
+      }
+      input.value = v;
 
       if (this.isText && this.$element.val() && this.ymd) {
         this.set(Utils.toDate(this.ymd, dataDateTemp));
@@ -606,30 +598,27 @@
         return false;
       }
 
-      var v = input.value - 0;
-      // control hour
-      if (className.indexOf('calendar-hour') > -1) {
-        if (v > 0) {
-          if (isToday && minTime.substr(0, 2) - v >= 0) {
-            return false;
-          }
-          input.value = Utils.lenNum(v - 1);
-        }
-      } else if (className.indexOf('calendar-minute') > -1)  {
-        if (isToday && minTime.substr(2, 2) - v >= 0) {
-          return false;
-        }
-        if (v > 0) {
-          input.value = Utils.lenNum(v - 1);
-        }
-      } else if (className.indexOf('calendar-second') > -1)  {
-        if (isToday && minTime.substr(4, 2) - v >= 0) {
-          return false;
-        }
-        if (v > 0) {
-          input.value = Utils.lenNum(v - 1);
-        }
+      var temp = $.map(this.timeBox, function (el) {
+        return el.value;
+      });
+      var v = input.value - 1;
+      if (v < 0) {
+        v = 0;
       }
+      v = Utils.lenNum(v);
+
+      if (className.indexOf('calendar-hour') > -1) {
+        temp[0] = v;
+      } else if (className.indexOf('calendar-minute') > -1)  {
+        temp[1] = v;
+      } else if (className.indexOf('calendar-second') > -1) {
+        temp[2] = v;
+      }
+
+      if (temp.join('') < minTime) {
+        return false;
+      }
+      input.value = v;
 
       if (this.isText && this.$element.val() && this.ymd) {
         this.set(Utils.toDate(this.ymd, dataDateTemp));
