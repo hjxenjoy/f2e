@@ -1,3 +1,3 @@
 前端开发
 ===
-[hjxenjoy](https://github.com/hjxenjoy/f2e/issues)
+[使用介绍和说明](https://github.com/hjxenjoy/f2e/wiki)
