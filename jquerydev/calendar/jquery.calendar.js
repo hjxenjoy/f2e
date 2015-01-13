@@ -276,6 +276,43 @@
     centuryScope: function (year) {
       var s = Math.floor(year / 100);
       return s + '00' + '-' + s + '99';
+    },
+
+    // https://github.com/hjxenjoy/f2e/issues/15
+    /**
+     * 月份加法
+     * @param knownDate
+     * @param scale
+     * @returns {Date}
+     */
+    addMonths: function (knownDate, scale) {
+      var resultDate = new Date(knownDate);
+      resultDate.setMonth(knownDate.getMonth() + scale + 1, 0); // 设置为预期月最后一天
+
+      var kd = knownDate.getDate();
+      var rd = resultDate.getDate();
+      if (rd > kd) { // 最大日期大于预期，取预期日期
+        resultDate.setDate(kd);
+      }
+      return resultDate;
+    },
+
+    /**
+     * 年份加法
+     * @param knownDate
+     * @param scale
+     * @returns {Date}
+     */
+    addYears: function (knownDate, scale) {
+      var resultDate = new Date(knownDate);
+      resultDate.setFullYear(knownDate.getFullYear() + scale, knownDate.getMonth() + 1, 0);
+
+      var kd = knownDate.getDate();
+      var rd = resultDate.getDate();
+      if (rd > kd) {
+        rd.setDate(kd);
+      }
+      return resultDate;
     }
   };
 
@@ -1203,6 +1240,64 @@
     return data;
   };
 
+
+  /**
+   * 计算跨度时间
+   * @param scopes
+   * @param direct
+   * @param date
+   * @returns {Date}
+   */
+  function span(scopes, direct, date) {
+    var unit = scopes[0];
+    var scale = scopes[1] - 0;
+    var resultDate = new Date(date);
+
+    if (unit === 'date') {
+      resultDate.setDate(date.getDate() + (direct * scale));
+    } else if (unit === 'month') {
+      resultDate = Utils.addMonths(date, direct * scale);
+    } else {
+      resultDate = Utils.addYears(date, direct * scale);
+    }
+    return resultDate;
+  }
+
+  /**
+   * 区间日期联动
+   * @param enable
+   * @param date
+   * @param touchable
+   * @param scope
+   * @param isStart
+   * @returns {*[]}
+   */
+  function freshEnable(enable, date, touchable, scope, isStart) {
+    var minDate = enable[0];
+    var maxDate = enable[1];
+    var tempDate = null;
+    // 起始日期设定后控制结束日期
+    if (isStart) {
+      if (scope.length === 2) {
+        tempDate = span(scope, 1, date);
+        // 计算后值在最大预期范围内
+        if (!maxDate || Utils.compareDate(tempDate, maxDate, 3) < 0) {
+          maxDate = tempDate;
+        }
+      }
+      minDate = touchable ? date : date.setDate(date.getDate() + 1);
+    } else {
+      if (scope.length === 2) {
+        tempDate = span(scope, -1, date);
+      }
+      if (!minDate || Utils.compareDate(tempDate, minDate, 3) > 0) {
+        minDate = tempDate;
+      }
+      maxDate = touchable ? date : date.setDate(date.getDate() - 1);
+    }
+    return [minDate, maxDate];
+  }
+
   function CalendarPair(start, end, option) {
     this.element = {
       start: start,
@@ -1222,24 +1317,20 @@
       var start = this.options.start;
       var end = this.options.end;
 
+      var startDate, endDate;
+
       var enable = this.options.enable;
       var touchable = this.touchable;
-      var scope = this.options.scope;
+      // 范围限制
+      // 如果限制三个月，如果开始日期选定之后，结束日期只能选择从开始日期起的最大三个月时间
+      // 参数'month,3'
+      var scope = (this.options.scope || '').split(',');
 
       var startOption = $.extend(true, {}, this.options, {
         clearBtn: true,
         change: function (date) {
-          var maxDate = enable[1];
-          if (typeof scope === 'function') {
-            maxDate = scope(new Date(date))[1];
-          }
-
-          // 起始值为结束值的最小值
-          if (!touchable) {
-            date.setDate(date.getDate() + 1);
-          }
-
-          end.calendar().enable(true, date, maxDate);
+          var en = freshEnable(enable, date, touchable, scope, true);
+          end.calendar().enable(true, en[0], en[1]);
         },
         clear: function () {
           // 重置结束日期的最小值限定
@@ -1247,22 +1338,26 @@
         }
       });
 
+      if (end.val()) {
+        endDate = Utils.toDate(end.val(), this.options.format);
+        startOption.enable = freshEnable(enable, endDate, touchable, scope, false);
+      }
+
       var endOption = $.extend(true, {}, this.options, {
         clearBtn: true,
         change: function (date) {
-          var minDate = enable[0];
-          if (typeof scope === 'function') {
-            minDate = scope(new Date(date))[0];
-          }
-          if (!touchable) {
-            date.setDate(date.getDate() - 1);
-          }
-          start.calendar().enable(true, minDate, date);
+          var en = freshEnable(enable, date, touchable, scope, false);
+          start.calendar().enable(true, en[0], en[1]);
         },
         clear: function () {
           start.calendar().enable(true, enable[0], enable[1]);
         }
       });
+
+      if (start.val()) {
+        startDate = Utils.toDate(start.val(), this.options.format);
+        endOption.enable = freshEnable(enable, startDate, touchable, scope, true);
+      }
 
       start.calendar(startOption);
       end.calendar(endOption);
