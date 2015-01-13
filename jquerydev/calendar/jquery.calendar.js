@@ -310,7 +310,7 @@
       var kd = knownDate.getDate();
       var rd = resultDate.getDate();
       if (rd > kd) {
-        rd.setDate(kd);
+        resultDate.setDate(kd);
       }
       return resultDate;
     }
