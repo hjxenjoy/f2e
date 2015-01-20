@@ -601,26 +601,31 @@
     addTimes: function (input, className, maxDate, maxTime) {
       var isToday = this.ymd - maxDate === 0;
       // 今天的时分秒小于最晚时分秒要求
-      if (isToday && this.hms - maxTime > 0) {
+      if (isToday && this.hms - maxTime >= 0) {
         return false;
       }
       var temp = $.map(this.timeBox, function (el) {
         return el.value;
       });
-      // 配合set方法，可以实现秒钟累加成分钟，分钟累加成时钟
       var v = Utils.lenNum(input.value - 0 + 1);
 
       if (className.indexOf('calendar-hour') > -1) {
+        if (v > 23) {
+          return false;
+        }
         temp[0] = v;
       } else if (className.indexOf('calendar-minute') > -1)  {
+        if (v > 59) {
+          return false;
+        }
         temp[1] = v;
       } else if (className.indexOf('calendar-second') > -1) {
+        if (v > 59) {
+          return false;
+        }
         temp[2] = v;
       }
 
-      if (temp.join('') > maxTime) {
-        return false;
-      }
       input.value = v;
 
       if (this.isText && this.$element.val() && this.ymd) {
@@ -640,7 +645,7 @@
       });
       var v = input.value - 1;
       if (v < 0) {
-        v = 0;
+        return false;
       }
       v = Utils.lenNum(v);
 
@@ -652,9 +657,6 @@
         temp[2] = v;
       }
 
-      if (temp.join('') < minTime) {
-        return false;
-      }
       input.value = v;
 
       if (this.isText && this.$element.val() && this.ymd) {

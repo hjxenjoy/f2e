@@ -30,8 +30,10 @@
         mad.setHours(10, 20, 20);
         $('#t2').calendar({
           time: true,
-          enable: [md, mad],
+//          enable: [md, mad],
 //          todayBtn: true,
+//          enable: [undefined, new Date],
+          enable: [new Date, undefined],
           clearBtn: true
         });
 //        $('#t3').calendar({
@@ -58,7 +60,7 @@
     </div>
 
     <div class="s1">
-      <input class="date" type="text" id="t2" readonly="readonly" value="2015-01-09 09:10:10"/>
+      <input class="date" type="text" id="t2" readonly="readonly" value=""/>
     </div>
     <div class="s1">
       <input class="date" type="text" id="t3" readonly="readonly" />
