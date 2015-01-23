@@ -48,6 +48,29 @@
     return (typeof prefix === 'string' ? prefix : '') + r;
   };
 
+  /**
+   * 删除指定索引位置元素
+   * @param array
+   * @param index
+   * @returns {Array}
+   */
+  var arrRemove = function (array, index) {
+    var suf = array.splice(index + 1);
+    array.pop();
+    return array.concat(suf);
+  };
+
+  var panel = function (item) {
+    var html = [
+      '<div class="tags-label">',
+      item.label,
+      '  <span class="tag-close">&times;</span>',
+      '</div>'
+    ];
+
+    return html.join('');
+  };
+
   var setPosition = function (target, dropdown) {
     var pos = target.offset();
     var height = target.outerHeight();
@@ -267,8 +290,8 @@
 
       var view_html = [
         '<div class="autocomplete-view ac-tags" id="' + view_id + '">',
+        '  <div class="tags-cart"></div>',
         '  <input type="text" class="tags-search" autocomplete="false"/>',
-        '  <div class="tags-line"></div>',
         '</div>'
       ];
 
@@ -305,15 +328,61 @@
       if (dropdown.maxHeight > 0) {
         this.resulter.css('maxHeight', (dropdown.maxHeight) + 'px');
       }
+
+      this.ex = [];
     },
 
     listenTags: function () {
+      var that = this;
+      this.searcher
+        .on('focus.autocomplete-api', function () {
+          if (!that.isFreeze) {
+            that.startEdit();
+          }
+        })
+        .on('keypress.autocomplete-api', function (e) {
+          // 阻止ENTER表单自动提交
+          if (e.keyCode === 13) {
+            var item = that.resulter.find('li.active');
+            if (item.length > 0) {
+              that.select(that.cache[item.index()]).done(function (item) {
+                that.change(item).closeEdit();
+              });
+            } else {
+              that.closeEdit();
+            }
+            e.preventDefault();
+          }
+        })
+        .on('keydown.autocomplete-api', function (e) {
+          if (that.cache.length) {
+            if (e.keyCode === 38) {  // key up
+              that.up();
+              e.preventDefault();
+            } else if (e.keyCode === 40) {  // key down
+              that.down();
+              e.preventDefault();
+            }
+          }
+        });
 
+      this.tagcart.on('click.close-tags', '.tag-close', function () {
+        var parent = $(this).closest('.tags-label');
+        that.ex = arrRemove(that.ex, parent.index());
+        parent.remove();
+        that.change();
+      });
+
+      this.resulter
+        .on('click.select-item', 'li', function () {
+          that.select(that.cache[$(this).index()]).done(function (item) {
+            that.change(item).closeEdit();
+          });
+        });
     },
 
     up: function () {
       var current = this.resulter.find('li.active');
-      var height = this.resulter.find('ul').outerHeight();
       var top = this.resulter.scrollTop();
       var prev = current.prev();
       current.removeClass('active');
@@ -327,7 +396,6 @@
     },
     down: function () {
       var current = this.resulter.find('li.active');
-      var height = this.resulter.find('ul').outerHeight();
       var top = this.resulter.scrollTop();
       var next = current.next();
       current.removeClass('active');
@@ -346,7 +414,9 @@
       });
       var that = this;
 
-      this.viewer.addClass('ac-edit-view');
+      if (!that.options.multiple) {
+        this.viewer.addClass('ac-edit-view');
+      }
       this.searcher.val(this.ex ? this.ex.label : '').select();
       this.dropdowner.removeClass('hide');
       this.isTopSide = setPosition(this.viewer, this.dropdowner);
@@ -514,28 +584,65 @@
     },
 
     clear: function () {
-      this.ex = null;
-      this.element.val('');
-      this.labeler.html(this.options.placeholder).addClass('ac-place');
-      this.viewer.removeClass('ac-has-value');
+      if (this.options.multiple) {
+        this.ex = [];
+        this.tagcart.empty();
+      } else {
+        this.ex = null;
+        this.element.val('');
+        this.labeler.html(this.options.placeholder).addClass('ac-place');
+        this.viewer.removeClass('ac-has-value');
+      }
       (this.options.clear || function () {})();
       return this;
     },
     change: function (item) {
-      this.ex = item;
-      this.element.val(item.value);
-      this.labeler.html(item.label).removeClass('ac-place');
-      this.viewer.addClass('ac-has-value');
-      (this.options.change || function () {})(item);
+      if (this.options.multiple) {
+        if (item) {
+          this.ex.push(item);
+          this.addPanel(item);
+        }
+      } else {
+        this.ex = item;
+        this.element.val(item.value);
+        this.labeler.html(item.label).removeClass('ac-place');
+        this.viewer.addClass('ac-has-value');
+      }
+      (this.options.change || function () {})(this.ex);
       return this;
+    },
+    addPanel: function (item) {
+      this.tagcart.append(panel(item));
     },
     select: function (item) {
       var _select = this.options.select;
       var defer = $.Deferred();
-      if ($.isFunction(_select)) {
-        _select(item, defer);
+      if (this.options.multiple) {
+        // 多选模式去重
+        var exit = false;
+        if (this.ex.length > 0) {
+          for (var i = 0, len = this.ex.length; i < len; i++) {
+            if (item.value === this.ex[i].value) {
+              exit = true;
+              break;
+            }
+          }
+        }
+        if (exit) {
+          defer.reject();
+        } else {
+          if ($.isFunction(_select)) {
+            _select(item, defer);
+          } else {
+            defer.resolve(item);
+          }
+        }
       } else {
-        defer.resolve(item);
+        if ($.isFunction(_select)) {
+          _select(item, defer);
+        } else {
+          defer.resolve(item);
+        }
       }
       return defer.promise();
     },
@@ -561,7 +668,7 @@
     // 获取插件已选值
     get: function () {
       if (this.options.multiple) {
-        return [];
+        return this.ex;
       } else {
         var item = this.ex || {};
         return {
@@ -573,8 +680,16 @@
 
     // 重新给插件赋值
     set: function (param) {
-      var html = [];
       if (this.options.multiple) {
+        this.ex = [];
+        if (param.length > 0) {
+          this.ex = param;
+          var html = [];
+          for (var i = 0, len = param.length; i < len; i++) {
+            html.push(panel(param[i]));
+          }
+          this.tagcart.html(html.join(''));
+        }
       } else {
         this.labeler.text(param.label).removeClass('ac-place');
         this.element.val(param.value);
@@ -624,7 +739,7 @@
       }
       inac = false;
     })
-    .on('click.autocomplete-api', '.autocomplete-view', function (e) {
+    .on('click.autocomplete-api', '.autocomplete-view', function () {
       inac = true;
     })
     .on('click.autocomplete-api', '.autocomplete-dropdown', function (e) {

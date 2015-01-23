@@ -39,7 +39,10 @@
             width: 350,
             maxHeight: 200
           },
-          multiple: false
+          multiple: true,
+          change: function (list) {
+            console.log(list);
+          }
         });
       });
     </script>
