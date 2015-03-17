@@ -1,4 +1,4 @@
-//  
+//
 //                                  _oo8oo_
 //                                 o8888888o
 //                                 88" . "88
@@ -17,12 +17,12 @@
 //                    \  \ `-.   \_ __\ /__ _/   .-` /  /
 //                =====`-.____`.___ \_____/ ___.`____.-`=====
 //                                  `=---=`
-//  
-//  
+//
+//
 //               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// 
+//
 //                          佛祖保佑         永无bug
-//                          
+//
 /**
  * Copyright (c) 2014 hjxenjoy
  */
@@ -64,8 +64,7 @@
     var html = [
       '<div class="tags-label">',
       item.label,
-      '  <span class="tag-close">&times;</span>',
-      '</div>'
+      '<span class="tag-close">&times;</span></div>' // 去除了此处加上的空格，chrome@32上出现了格式问题
     ];
 
     return html.join('');
@@ -149,6 +148,8 @@
       var that = this;
       var source = this.options.source;
       var format = this.options.format || that.format;
+
+      this.running = false; // 是否处于运行查询状态
 
       // change之前的所选item
       this.ex = null;
@@ -347,9 +348,12 @@
             if (item.length > 0) {
               that.select(that.cache[item.index()]).done(function (item) {
                 that.change(item).closeEdit();
+                that.startEdit();
               });
             } else {
               that.closeEdit();
+              that.startEdit();
+              that.startEdit();
             }
             e.preventDefault();
           }
@@ -412,6 +416,7 @@
       $.each(acSet, function (i, data) {
         data.closeEdit();
       });
+      this.running = true;
       var that = this;
 
       if (!that.options.multiple) {
@@ -575,12 +580,19 @@
     },
 
     closeEdit: function () {
+      if (!this.running) {
+        return this;
+      }
       this.viewer.removeClass('ac-edit-view');
       this.dropdowner.addClass('hide');
       this.searcher.val('');
       this.searchKey = '';
       this.resulter.empty();
-      window.clearInterval(this.interval);
+      if (typeof this.interval !== 'undefined') {
+        window.clearInterval(this.interval);
+      }
+      this.running = false;
+      return this;
     },
 
     clear: function () {
