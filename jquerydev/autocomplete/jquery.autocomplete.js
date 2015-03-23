@@ -55,9 +55,7 @@
    * @returns {Array}
    */
   var arrRemove = function (array, index) {
-    var suf = array.splice(index + 1);
-    array.pop();
-    return array.concat(suf);
+    return array.splice(index, 1); // 我不知道为什么当初我要那么写，但是肯定是错的
   };
 
   var panel = function (item) {
