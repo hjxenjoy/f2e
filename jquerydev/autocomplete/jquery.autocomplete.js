@@ -52,7 +52,7 @@
    * 删除指定索引位置元素
    * @param array
    * @param index
-   * @returns {Array}
+   * @returns {Array} 删除的元素集合
    */
   var arrRemove = function (array, index) {
     return array.splice(index, 1); // 我不知道为什么当初我要那么写，但是肯定是错的
@@ -370,7 +370,7 @@
 
       this.tagcart.on('click.close-tags', '.tag-close', function () {
         var parent = $(this).closest('.tags-label');
-        that.ex = arrRemove(that.ex, parent.index());
+        arrRemove(that.ex, parent.index());
         parent.remove();
         that.change();
       });
