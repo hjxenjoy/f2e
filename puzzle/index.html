@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>拼图</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      -webkit-user-select: none;
+    }
+    #tu {
+      position: relative;
+      margin: 50px auto;
+      border: 2px solid #fff;
+    }
+    .show-index .item {
+      color: rgba(255, 255, 255, .5);
+    }
+    .item {
+      position: absolute;
+      background: url(http://7te96d.com1.z0.glb.clouddn.com/f2e-1.png);
+      color: transparent;
+      font-family: Consolas;
+      text-align: center;
+      cursor: default;
+      -webkit-transition: all .2s ease;
+    }
+    .item:last-child {
+      opacity: 0;
+    }
+    .item:hover::before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, .4);
+      content: "";
+    }
+    input[type=button] {
+      border: 1px solid #fff;
+      background: #f9f9f9;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    input[type=button]:focus {
+      outline: 0 none;
+    }
+    .controls {
+      position: fixed;
+      top: 10px;
+      right: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <input type="button" value="还原" onclick="reback()"/>
+    <input type="button" value="胡乱洗牌" onclick="run1()"/>
+    <input type="button" value="好好洗牌" onclick="run2()" />
+    <input type="button" value="水印" onclick="showIndex()"/>
+    <input type="button" value="演示" onclick="display()"/>
+  </div>
+
+  <div id="tu" class="show-index"></div>
+
+  <script type="text/javascript" src="puzzle.js"></script>
+</body>
+</html>
