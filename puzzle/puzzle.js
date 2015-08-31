@@ -119,6 +119,7 @@ function init() {
 function run1() {
   if (interval) {
     window.clearInterval(interval);
+    interval = undefined;
   }
   shuffle(items, rows);
 }
@@ -127,6 +128,7 @@ var record = [];
 function run2() {
   if (interval) {
     window.clearInterval(interval);
+    interval = undefined;
   }
   reback();
   record = [];
@@ -173,6 +175,7 @@ function display() {
     transform(record.pop());
     if (!record.length) {
       window.clearInterval(interval);
+      interval = undefined;
     }
   }, 500);
 }
@@ -181,6 +184,7 @@ function display() {
 function reback() {
   if (interval) {
     window.clearInterval(interval);
+    interval = undefined;
   }
   for (var i = 0; i < rows; i++) {
     for (var j = 0; j < columns; j++) {
