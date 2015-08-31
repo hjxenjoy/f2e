@@ -7,6 +7,7 @@ var item_height = 100;
 var item_width = 100;
 var total = 16;
 var set = {};
+var interval;
 
 var items = [];
 
@@ -117,6 +118,9 @@ function init() {
 }
 
 function run1() {
+  if (interval) {
+    window.clearInterval(interval);
+  }
   shuffle(items, rows);
 }
 
@@ -155,6 +159,9 @@ function clean() {
 }
 
 function display() {
+  if (!record.length || interval) {
+    return false;
+  }
   clean();
   var go = window.setInterval(function () {
     transform(record.pop());
@@ -166,7 +173,9 @@ function display() {
 
 
 function reback() {
-
+  if (interval) {
+    window.clearInterval(interval);
+  }
   for (var i = 0; i < rows; i++) {
     for (var j = 0; j < columns; j++) {
       (function (item, index, i, j) {
