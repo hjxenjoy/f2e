@@ -1,4 +1,4 @@
-var obj = document.getElementById('puzzle');
+var obj = document.getElementById('tu');
 var width = 400;
 var height = 400;
 var columns = 4;
@@ -8,7 +8,6 @@ var item_width = 100;
 var total = 16;
 var set = {};
 var interval;
-
 var items = [];
 
 init();
@@ -126,8 +125,12 @@ function run1() {
 
 var record = [];
 function run2() {
+  if (interval) {
+    window.clearInterval(interval);
+  }
   reback();
   record = [];
+  console.time('record');
   for (var i = 0; i < 100; i++) {
     var valid = getValid();
     // 从可用对象中随机筛选一个进行交换
@@ -141,6 +144,8 @@ function run2() {
       }
     }
   }
+
+  console.timeEnd('record');
 }
 
 function clean() {
@@ -159,14 +164,15 @@ function clean() {
 }
 
 function display() {
+
   if (!record.length || interval) {
-    return false;
+    return;
   }
   clean();
-  var go = window.setInterval(function () {
+  interval = window.setInterval(function () {
     transform(record.pop());
     if (!record.length) {
-      window.clearInterval(go);
+      window.clearInterval(interval);
     }
   }, 500);
 }
