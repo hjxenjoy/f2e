@@ -1,4 +1,4 @@
-var obj = document.getElementById('tu');
+var obj = document.getElementById('puzzle');
 var width = 400;
 var height = 400;
 var columns = 4;
