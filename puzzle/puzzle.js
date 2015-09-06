@@ -98,7 +98,7 @@ function init() {
         + 'top: ' + top + 'px;'
         + 'left: ' + left + 'px;';
 
-      var index = (i * rows + j);
+      var index = (i * columns + j);
 
       set[index] = {
         top: top,
@@ -199,7 +199,7 @@ function reback() {
         item.style.top = top + 'px';
         item.style.left = left + 'px';
 
-      })(items[i * rows + j], i * rows + j, i, j);
+      })(items[i * columns + j], i * columns + j, i, j);
     }
   }
 }
