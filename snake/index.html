@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>snake</title>
+  <style>
+  body {
+    background: #000;
+  }
+  #map {
+    float: left;
+    position: relative;
+    background: rgba(255, 255, 255, .3);
+    color: #fff;
+    font-family: monospace;
+    border: 1px solid #777;
+    font-size: 0;
+  }
+  #map i {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border: 2px solid #000;
+  }
+  #map i::before {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    border: 2px solid #000;
+    content: "";
+  }
+
+  #counts {
+    float: left;
+    margin-left: 30px;
+  }
+  #counts .number {
+    position: relative;
+    display: inline-block;
+    margin: 0 5px;
+    width: 42px;
+    height: 60px;
+  }
+   #counts .number i {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border: 1px solid #000;
+    background: #bb0;
+    border-radius: 50%;
+  }
+  </style>
+
+</head>
+<body>
+  
+  <div id="map"></div>
+
+  <div id="counts"></div>
+
+  <script src="snake.js"></script>
+
+</body>
+</html>
