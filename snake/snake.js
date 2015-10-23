@@ -242,11 +242,21 @@
     var point = [];
     while(!point.length || snake.contains(point)) {
       point = [
-        Math.floor(Math.random() * X),
-        Math.floor(Math.random() * Y)
+        randomCenter(X),
+        randomCenter(Y)
       ];
     }
     return point;
+  }
+
+  function randomCenter(max) {
+    var number = 0;
+
+    while(number === 0 || number === (max - 1)) {
+      number = Math.floor(Math.random() * max);
+    }
+
+    return number;
   }
 
   function eq(p1, p2) {
