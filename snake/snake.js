@@ -12,6 +12,8 @@
   var X = 30;
   var Y = 50;
 
+  var interval;
+
   var DIRECT_TOP = -1;
   var DIRECT_RIGHT = 2;
   var DIRECT_BOTTOM = 1;
@@ -404,7 +406,7 @@
     draw(snake);
     
     if (snake.run()) {
-      window.setTimeout(function () {
+      interval = window.setTimeout(function () {
         circle(snake);
       }, DELAY);
     }
@@ -414,9 +416,9 @@
   // 初始化画布
   init();
 
-  var snake = new Snake(SNAKE_POINTS);
+  var snake = new Snake(SNAKE_POINTS.concat());
 
-  circle(snake);
+  draw(snake);
 
   var m = {'37': DIRECT_LEFT, '38': DIRECT_TOP, '39': DIRECT_RIGHT, '40': DIRECT_BOTTOM};
 
@@ -426,6 +428,32 @@
     if (nextDirect && snake.direct + nextDirect !== 0) {
       snake.direct = nextDirect;
     }
+
+    if (event.keyCode === 32) { // space
+      if (interval) {
+        window.clearInterval(interval);
+        interval = 0;
+        BOX.className = 'pending';
+      } else {
+        BOX.className = '';
+
+        window.setTimeout(function () {
+          circle(snake);
+        }, 500);
+        
+      }
+      
+    }
+
+    if (event.keyCode === 82) { // R
+      snake = new Snake(SNAKE_POINTS.concat());
+      draw(snake);
+
+      window.clearInterval(interval);
+      interval = 0;
+      BOX.className = 'pending';
+    }
+
   };
 
 
