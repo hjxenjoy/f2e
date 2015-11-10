@@ -3,10 +3,76 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Canvas 画布</title>
+  <title>Canvas 画布之scale</title>
+  <style>
+  canvas {
+    border: 2px solid #999;
+  }
+  </style>
 </head>
 
 <body>
+  <h3>Canvas画图之scale操作整个画布</h3>
+  <p>鉴于之前调试canvas的时候，总是发现画布上绘制的描边路径等不清晰，所以在网络上找到了这个资源，记录之……</p>
+  <canvas id="canvas" width="500" height="400"></canvas>
+  <script>
+  (function(prototype) {
+    prototype.getContext = (function(_super) {
+      return function(type) {
+        var backingStore, ratio,
+          context = _super.call(this, type);
+
+        if (type === '2d') {
+
+          backingStore = context.backingStorePixelRatio ||
+            context.webkitBackingStorePixelRatio ||
+            context.mozBackingStorePixelRatio ||
+            context.msBackingStorePixelRatio ||
+            context.oBackingStorePixelRatio ||
+            context.backingStorePixelRatio || 1;
+
+          ratio = (window.devicePixelRatio || 1) / backingStore;
+
+          if (ratio > 1) {
+            this.style.height = this.height + 'px';
+            this.style.width = this.width + 'px';
+            this.width *= ratio;
+            this.height *= ratio;
+          }
+        }
+
+        return context;
+      };
+    })(prototype.getContext);
+  })(HTMLCanvasElement.prototype);
+
+  var ctx = document.getElementById('canvas').getContext('2d');
+
+  ctx.strokeStyle = '#09c';
+  ctx.lineWidth = 10;
+  ctx.rect(10, 10, 200, 100);
+  ctx.stroke();
+
+  var img = new Image();
+  img.width = 50;
+  img.height = 50;
+  img.src = 'http://7te96d.com1.z0.glb.clouddn.com/face.png';
+  img.onload = function() {
+    ctx.drawImage(img, 240, 10);
+  };
+
+  ctx.beginPath();
+  ctx.lineWidth = 1;
+  ctx.moveTo(0, 160);
+  ctx.lineTo(400, 160);
+  ctx.stroke();
+  ctx.closePath();
+
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 1;
+  ctx.font = '20px Microsoft Yahei';
+  ctx.strokeText('这是一段描边文字', 10, 160);
+  </script>
 </body>
 
 </html>
