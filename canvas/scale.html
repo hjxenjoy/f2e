@@ -16,6 +16,7 @@
   <p>鉴于之前调试canvas的时候，总是发现画布上绘制的描边路径等不清晰，所以在网络上找到了这个资源，记录之……</p>
   <canvas id="canvas" width="500" height="400"></canvas>
   <script>
+  // https://github.com/jondavidjohn/hidpi-canvas-polyfill
   (function(prototype) {
     prototype.getContext = (function(_super) {
       return function(type) {
