@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>贪吃蛇</title>
+  <style>
+  body {
+    background: #000;
+  }
+  
+  .help {
+    margin-bottom: 30px;
+    color: #ccc;
+  }
+  
+  .key {
+    display: inline-block;
+    min-width: 25px;
+    height: 20px;
+    line-height: 18px;
+    background: rgba(255, 255, 255, .4);
+    border: 1px solid rgba(255, 255, 255, .5);
+    border-radius: 2px;
+    text-align: center;
+    vertical-align: middle;
+    font-family: menlo, Courier, Consolas;
+  }
+  
+  .key::after {
+    display: inline-block;
+    width: 0;
+    height: 100%;
+    vertical-align: middle;
+    content: "";
+  }
+  
+  .key-up::before {
+    display: inline-block;
+    line-height: 0;
+    border: 6px solid #aaa;
+    border-top-width: 0;
+    border-color: transparent transparent #aaa transparent;
+    content: "";
+    vertical-align: middle;
+  }
+  
+  .key-down::before {
+    display: inline-block;
+    line-height: 0;
+    border: 6px solid #aaa;
+    border-bottom-width: 0;
+    border-color: #aaa transparent transparent transparent;
+    content: "";
+    vertical-align: middle;
+  }
+  
+  .key-left::before {
+    display: inline-block;
+    line-height: 0;
+    border: 6px solid #aaa;
+    border-left-width: 0;
+    border-color: transparent #aaa transparent transparent;
+    content: "";
+    vertical-align: middle;
+  }
+  
+  .key-right::before {
+    display: inline-block;
+    line-height: 0;
+    border: 6px solid #aaa;
+    border-right-width: 0;
+    border-color: transparent transparent transparent #aaa;
+    content: "";
+    vertical-align: middle;
+  }
+  
+  .key-space,
+  .key-r {
+    padding: 0 5px;
+  }
+  
+  .key-space::before {
+    font-size: 12px;
+    content: "space";
+  }
+  
+  .key-r::before {
+    font-size: 12px;
+    content: "R";
+  }
+  
+  #canvas {
+    border: 2px solid #fff;
+    background: rgba(255, 255, 255, .3);
+  }
+  </style>
+</head>
+
+<body>
+  <div class="help">
+    <span>使用</span>
+    <div class="key key-up"></div>
+    <div class="key key-down"></div>
+    <div class="key key-left"></div>
+    <div class="key key-right"></div>
+    <span>调整方向，使用</span>
+    <div class="key key-space"></div>
+    <span>切换开始暂停，使用</span>
+    <div class="key key-r"></div>
+    <span>重置</span>
+  </div>
+  <canvas id="canvas"></canvas>
+  <!-- <div id="counts"></div> -->
+  <script src="canvas-snake.js"></script>
+</body>
+
+</html>
