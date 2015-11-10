@@ -180,7 +180,7 @@
   var canvas = document.getElementById('canvas');
 
   canvas.width = Y * WIDTH;
-  canvas.height = X * HEIGHT;
+  canvas.height = X * HEIGHT + 200;
 
   var ctx = canvas.getContext('2d');
   // window.ctx = ctx;
@@ -188,6 +188,16 @@
   function draw(snake) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.beginPath();
+    ctx.fillStyle = '#666';
+    ctx.rect(0, X * HEIGHT, Y * WIDTH, 200);
+    ctx.fill();
+    ctx.closePath();
+
+    ctx.fillStyle = '#f90';
+    ctx.font = '20px Microsoft Yahei';
+    ctx.fillText('当前分数', 30, X * HEIGHT + 30);
 
     var i = 0,
       length = snake.points.length;
@@ -204,8 +214,7 @@
     }
     fillGrid(bean[1] * WIDTH, bean[0] * HEIGHT);
 
-    // COUNTS.innerHTML = count(length - INIT_SNAKE_LENGTH);
-
+    count(length - INIT_SNAKE_LENGTH);
   }
 
   function fillGrid(x, y) {
@@ -231,21 +240,14 @@
     if (counts > 9) {
       numbers = ('' + counts).match(/\d/g);
     }
-
-    var html = [];
-
+    var i = 0;
     while (numbers.length) {
-      html = html.concat(drawNumber(numbers.shift()));
+      drawNumber(numbers.shift(), i++);
     }
-
-    return html.join('');
-
   }
 
-  function drawNumber(number) {
+  function drawNumber(number, index) {
     var target = dot_matrix[number];
-    var result = ['<div class="number">'];
-
     for (var x = 0; x < target.length; x++) {
 
       (function(line, x) {
@@ -254,7 +256,12 @@
 
           (function(isDot, x, y) {
             if (isDot) {
-              result.push('<i class="dot" style="top:' + x * DOT_H + 'px;left:' + y * DOT_W + 'px;"></i>');
+
+              ctx.beginPath();
+              ctx.fillStyle = '#999';
+              ctx.arc(30 + index * 8 * 12 + y * 12 - 6, X * HEIGHT + x * 12 + 60, 6, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.closePath();
             }
 
           })(line[y] === 1, x, y);
@@ -264,9 +271,7 @@
       })(target[x], x);
     }
 
-    result.push('</div>');
 
-    return result;
   }
 
   /**
