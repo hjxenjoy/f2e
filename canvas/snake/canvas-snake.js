@@ -183,7 +183,6 @@
   canvas.height = X * HEIGHT + 200;
 
   var ctx = canvas.getContext('2d');
-  // window.ctx = ctx;
 
   function draw(snake) {
 
@@ -202,8 +201,6 @@
     var i = 0,
       length = snake.points.length;
     var bean = snake.target;
-
-    // var html = [];
 
     for (; i < length; i++) {
 
@@ -474,10 +471,7 @@
       if (interval) {
         window.clearInterval(interval);
         interval = 0;
-        // BOX.className = 'pending';
       } else {
-        // BOX.className = '';
-
         window.setTimeout(function() {
           circle(snake);
         }, 500);
@@ -492,7 +486,6 @@
 
       window.clearInterval(interval);
       interval = 0;
-      // BOX.className = 'pending';
     }
 
   };
