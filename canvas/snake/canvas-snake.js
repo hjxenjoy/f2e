@@ -21,6 +21,9 @@
           this.width *= ratio;
           this.height *= ratio;
         }
+
+
+        context._ratio = ratio;
       }
 
       return context;
@@ -183,6 +186,7 @@
   canvas.height = X * HEIGHT + 200;
 
   var ctx = canvas.getContext('2d');
+  var gridHeight = canvas.height - 200 * ctx._ratio;
 
   function draw(snake) {
 
@@ -190,13 +194,13 @@
 
     ctx.beginPath();
     ctx.fillStyle = '#666';
-    ctx.rect(0, X * HEIGHT, Y * WIDTH, 200);
+    ctx.rect(0, gridHeight, canvas.width, 200 * ctx._ratio);
     ctx.fill();
     ctx.closePath();
 
     ctx.fillStyle = '#f90';
-    ctx.font = '20px Microsoft Yahei';
-    ctx.fillText('当前分数', 30, X * HEIGHT + 30);
+    ctx.font = (20 * ctx._ratio) + 'px Microsoft Yahei';
+    ctx.fillText('当前分数', 30 * ctx._ratio, gridHeight + 30 * ctx._ratio);
 
     var i = 0,
       length = snake.points.length;
@@ -205,27 +209,27 @@
     for (; i < length; i++) {
 
       (function(point) {
-        fillGrid(point[1] * WIDTH, point[0] * HEIGHT);
+        fillGrid(point[1] * WIDTH * ctx._ratio, point[0] * HEIGHT * ctx._ratio);
 
       })(snake.points[i]);
     }
-    fillGrid(bean[1] * WIDTH, bean[0] * HEIGHT);
+    fillGrid(bean[1] * WIDTH * ctx._ratio, bean[0] * HEIGHT * ctx._ratio);
 
     count(length - INIT_SNAKE_LENGTH);
   }
 
   function fillGrid(x, y) {
     ctx.beginPath();
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1 * ctx._ratio;
     ctx.strokeStyle = 'transparent';
     ctx.fillStyle = '#000';
-    ctx.rect(x, y, 11, 11);
+    ctx.rect(x, y, (12 - 1) * ctx._ratio, (12 - 1) * ctx._ratio);
     ctx.fill();
     ctx.closePath();
     ctx.beginPath();
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2 * ctx._ratio;
     ctx.strokeStyle = '#666';
-    ctx.rect(x + 3, y + 3, 5, 5);
+    ctx.rect(x + 3 * ctx._ratio, y + 3 * ctx._ratio, 5 * ctx._ratio, 5 * ctx._ratio);
     ctx.stroke();
     ctx.closePath();
   }
@@ -256,7 +260,7 @@
 
               ctx.beginPath();
               ctx.fillStyle = '#999';
-              ctx.arc(30 + index * 8 * 12 + y * 12 - 6, X * HEIGHT + x * 12 + 60, 6, 0, 2 * Math.PI);
+              ctx.arc(30 * ctx._ratio + index * 8 * ctx._ratio * 12 + y * ctx._ratio * 12 - 6 * ctx._ratio, gridHeight + x * 12 * ctx._ratio + 60 * ctx._ratio, 6 * ctx._ratio, 0, 2 * Math.PI);
               ctx.fill();
               ctx.closePath();
             }
