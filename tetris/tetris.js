@@ -1,4 +1,4 @@
-(function () {
+(function() {
 
   'use strict';
 
@@ -7,36 +7,36 @@
 
   var DiamondSet = [
     [ // 品
-      [0,1,0],
-      [1,1,1],
-      [0,0,0]
+      [0, 1, 0],
+      [1, 1, 1],
+      [0, 0, 0]
     ],
     [ // L
-      [1,0,0],
-      [1,1,1],
-      [0,0,0]
+      [1, 0, 0],
+      [1, 1, 1],
+      [0, 0, 0]
     ],
     [ // nL
-      [0,0,1],
-      [1,1,1],
-      [0,0,0]
+      [0, 0, 1],
+      [1, 1, 1],
+      [0, 0, 0]
     ],
     [
-      [1,1,0],
-      [0,1,1],
-      [0,0,0]
+      [1, 1, 0],
+      [0, 1, 1],
+      [0, 0, 0]
     ],
     [
-      [0,1,1],
-      [1,1,0],
-      [0,0,0]
+      [0, 1, 1],
+      [1, 1, 0],
+      [0, 0, 0]
     ],
     [ // 口
-      [1,1],
-      [1,1]
+      [1, 1],
+      [1, 1]
     ],
     [ // ----
-      [1,1,1,1]
+      [1, 1, 1, 1]
     ],
   ];
 
@@ -50,13 +50,13 @@
 
     constructor: Diamond,
 
-    rotate: function (degree) {
+    rotate: function(degree) {
 
       var result = new Array(this.matrix[0].length);
 
-      this.matrix.forEach(function (line, row) {
+      this.matrix.forEach(function(line, row) {
 
-        line.forEach(function (dot, col) {
+        line.forEach(function(dot, col) {
           if (!result[col]) {
             result[col] = [];
           }
@@ -65,7 +65,7 @@
 
       });
 
-      result.forEach(function (line, index) {
+      result.forEach(function(line, index) {
         result[index] = line.reverse();
       });
 
@@ -74,15 +74,15 @@
       return this;
     },
 
-    html: function () {
+    html: function() {
       var w = this.matrix[0].length * dotW;
       var h = this.matrix.length * dotH;
 
       var html = ['<div class="matrix type_' + this.type + '" style="width:' + w + 'px;height:' + h + 'px;">'];
 
-      this.matrix.forEach(function (line, row) {
+      this.matrix.forEach(function(line, row) {
 
-        line.forEach(function (dot, col) {
+        line.forEach(function(dot, col) {
           if (dot === 1) {
             html.push('<i style="top:' + row * dotH + 'px;left:' + col * dotW + 'px;"></i>');
           }
@@ -109,9 +109,9 @@
   //  + new Diamond(4).html()
   //  + new Diamond(5).html()
   //  + new Diamond(6).html()
-   ;
+  // ;
 
-  document.addEventListener('keydown', function (event) {
+  document.addEventListener('keydown', function(event) {
     if (event.keyCode === 32) {
       box.innerHTML = item.rotate().html();
     }
