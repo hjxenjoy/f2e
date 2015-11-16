@@ -38,6 +38,7 @@
   context.lineWidth = DRAW.radius * 2;
 
   window.context = context;
+  window.canvas = canvas;
 
   on(canvas, 'mousedown', startDraw);
   on(canvas, 'mousemove', drawPoint);
@@ -120,6 +121,10 @@
 
   radiusRange.value = DRAW.defaultRadius;
   changeRadius(DRAW.defaultRadius);
+
+  on($('restartBtn'), 'click', function() {
+    canvas.width = canvas.width;
+  });
 
   function switchColor(e) {
     var target = e.target;
