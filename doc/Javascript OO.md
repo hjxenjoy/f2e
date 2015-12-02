@@ -119,7 +119,7 @@ lilei1.say('你好');
 // ==> 李雷说你好
 ```
 
-上面使用给原型prototype**扩展**方法的方式来增加实例方法。下面我们使用**重写**prototype的方法来构造实例方法。
+上面使用给原型prototype**扩展**方法的方式来增加实例方法。下面我们使用**重写** prototype的方法来构造实例方法。
 
 ```js
 function Person(name, age, gender) {
