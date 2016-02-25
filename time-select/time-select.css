@@ -1,0 +1,142 @@
+@charset "utf-8";
+
+.ts-box {
+  display: none;
+  position: absolute;
+  margin-top: 10px;
+  width: 202px;
+  padding: 20px 0;
+  font-size: 0;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 5px;
+  -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, .15);
+  -moz-box-shadow: 0 1px 4px rgba(0, 0, 0, .15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .15);
+}
+
+.ts-box::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  border: 10px solid transparent;
+  border-top-width: 0;
+  border-bottom-color: #ddd;
+}
+.ts-box::after {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 10px;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  border: 10px solid transparent;
+  border-top-width: 0;
+  border-bottom-color: #fff;
+}
+
+.ts-section {
+  display: none;
+}
+
+.ts-section.active {
+  display: block;
+}
+
+.ts-prev {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  width: 100%;
+  height: 20px;
+  cursor: text;
+  border-radius: 5px 5px 0 0;
+  text-align: center;
+  line-height: 20px;
+}
+.ts-next {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  width: 100%;
+  height: 20px;
+  cursor: text;
+  border-radius: 0 0 5px 5px;
+  text-align: center;
+  line-height: 20px;
+}
+
+.ts-prev::before {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+  border-top-width: 0;
+  border-bottom-color: #ddd;
+  vertical-align: middle;
+}
+
+.ts-next::before {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+  border-bottom-width: 0;
+  border-top-color: #ddd;
+  vertical-align: middle;
+}
+
+.ts-prev.valid ,
+.ts-next.valid {
+  cursor: pointer;
+}
+.ts-next.valid:hover,
+.ts-prev.valid:hover {
+  background: #eee;
+}
+
+.ts-box .ts-item,
+.ts-box .ts-blank {
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ts-box .ts-blank {
+  cursor: text;
+  background: #f9f9f9;
+}
+
+.ts-box .ts-item:hover,
+.ts-box .ts-item.active {
+  background-color: #006dcc;
+  background-image: -moz-linear-gradient(top, #0088cc, #0044cc);
+  background-image: -ms-linear-gradient(top, #0088cc, #0044cc);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0044cc));
+  background-image: -webkit-linear-gradient(top, #0088cc, #0044cc);
+  background-image: -o-linear-gradient(top, #0088cc, #0044cc);
+  background-image: linear-gradient(top, #0088cc, #0044cc);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#0088cc', endColorstr='#0044cc', GradientType=0);
+  border-color: #0044cc #0044cc #002a80;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+  color: #ffffff;
+  -webkit-text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  -moz-text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  border-radius: 3px;
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Time Select</title>
+  <style>
+  body {
+    margin: 0;
+    font-size: 14px;
+    color: #4a4a4a;
+    font-family: arial;
+  }
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  :focus {
+    outline: none;
+  }
+  .wraper {
+    position: relative;
+    top: 50px;
+    left: 50px;
+    padding: 100px;
+  }
+  input[type="text"] {
+    width: 300px;
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid #ddd;
+  }
+  </style>
+  <link rel="stylesheet" href="time-select.css">
+</head>
+<body>
+  <div class="wraper">
+    <input type="text" class="time-select" value="05:15" data-time-select="{step: 15}"/>
+    <input type="text" class="time-select" data-time-select="{step: 30, begin: 10}"/>
+    <input type="text" class="time-select" data-time-select="{step: 5, begin: 8}"/>
+  </div>
+
+  <script src="time-select.js"></script>
+  <script>
+    timeSelect('.time-select');
+  </script>
+</body>
+</html>
