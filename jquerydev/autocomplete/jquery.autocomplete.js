@@ -178,7 +178,7 @@
 
       var view_html = [
         '<div class="autocomplete-view" id="' + view_id + '">',
-        '  <input type="text"  class="ac-search" autocomplete="false" />',
+        '  <input type="text"  class="ac-search" autocomplete="off" />',
         '  <div class="ac-label ac-place">' + this.options.placeholder + '</div>',
         '  <div class="ac-delete">&times;</div>',
         '  <div class="ac-caret"></div>',
@@ -290,7 +290,7 @@
       var view_html = [
         '<div class="autocomplete-view ac-tags" id="' + view_id + '">',
         '  <div class="tags-cart"></div>',
-        '  <input type="text" class="tags-search" autocomplete="false"/>',
+        '  <input type="text" class="tags-search" autocomplete="off"/>',
         '</div>'
       ];
 
