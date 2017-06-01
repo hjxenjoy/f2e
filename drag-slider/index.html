@@ -1,0 +1,53 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拖拽滑动</title>
+  <link rel="stylesheet" href="./slider.css" />
+</head>
+<body>
+  <header>
+    <div class="drag-slider">
+      <div class="drag-content">
+        <div class="drag-item">一月</div>
+        <div class="drag-item">二月</div>
+        <div class="drag-item">三月</div>
+        <div class="drag-item">四月</div>
+        <div class="drag-item">五月</div>
+        <div class="drag-item">六月</div>
+        <div class="drag-item">七月</div>
+        <div class="drag-item">八月</div>
+        <div class="drag-item">九月</div>
+        <div class="drag-item">十月</div>
+        <div class="drag-item">冬月</div>
+        <div class="drag-item">腊月</div>
+      </div>
+    </div>
+  </header>
+  <section>
+    <strong id="selectItem"></strong>
+  </section>
+
+  <script type="text/javascript" src="./drag-slider.js"></script>
+  <script type="text/javascript">
+    window.onload = function () {
+      var selectItem = document.getElementById('selectItem');
+      var list = document.querySelectorAll('.drag-item');
+      var ds = new dragSlider({
+        el: '.drag-slider',
+        box: '.drag-content',
+        item: '.drag-item',
+        min: 60,
+        padding: 10,
+        max: 80,
+        change: update
+      });
+      
+      function update(index) {
+        selectItem.innerHTML = list[index].innerHTML;
+      }
+    };
+  </script>
+</body>
+</html>
